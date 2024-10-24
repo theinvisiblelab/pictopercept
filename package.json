@@ -1,0 +1,19 @@
+{
+  "name": "pictopercept",
+  "version": "0.0.0",
+  "scripts": {
+	  "build:sass": "sass --no-source-map static-src/sass:static/css",
+	  "build:ts": "tsc",
+	  "build": "npm run build:sass && npm run build:ts",
+	  "django": "python3 manage.py runserver",
+	  "watch:sass": "sass --watch --no-source-map static-src/sass:static/css",
+	  "watch:ts": "tsc --watch",
+	  "watch": "concurrently -k -p \"[{name}]\" -c \"blue.bold,green.bold,yellow\" \"npm:watch:sass\" \"npm:watch:ts\" \"npm:django\""
+  },
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "sass": "^1.80.4",
+    "typescript": "^5.6.3"
+  }
+}
