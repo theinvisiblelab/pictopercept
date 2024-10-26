@@ -25,6 +25,10 @@ form {
   &>.question {
     font-size: 24px;
     padding-bottom: 20px;
+
+    &>b {
+      text-transform: uppercase;
+    }
   }
 
   &>.options {

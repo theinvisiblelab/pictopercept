@@ -3,15 +3,15 @@ class Answer {
 	image: string;
 	chosen: boolean;
 	userId: string;
-	job: string;
 	timeBarEnabled: boolean;
+	questionVariables: { [key: string]: string }
 
-	constructor(index: number, image: string, chosen: boolean, userId: string, job: string, timeBarEnabled: boolean) {
+	constructor(index: number, image: string, chosen: boolean, userId: string, questionVariables: { [key: string]: string }, timeBarEnabled: boolean) {
 		this.index = index;
 		this.image = image;
 		this.chosen = chosen;
 		this.userId = userId;
-		this.job = job;
+		this.questionVariables = questionVariables;
 		this.timeBarEnabled = timeBarEnabled;
 	}
 };
@@ -25,10 +25,12 @@ const elementTimeBarStatus = document.getElementById("time-bar-status")!;
 const elementTimeBarTaken = document.getElementById("time-taken")!;
 const elementTimeBar = document.getElementById("time-bar")! as HTMLElement;
 
+declare var surveyQuestionRaw: any;
 declare var images: Array<string>; // Value set from HTML
-declare var jobs: Array<string>; // Value set from HTML
 declare var timeBarEnabled: boolean; // Value set from HTML
 declare var datasetUrl: string; // Value set from HTML
+
+const surveyQuestion = new QuestionGenerator(surveyQuestionRaw["text"], surveyQuestionRaw["variables"]);
 
 const TIME_BAR_MAX_SECONDS: number = 5;
 const FORM_MAX_SECONDS: number = 60;
@@ -38,14 +40,20 @@ const answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
 let formBeginTime: number | null = null;
 let answerBeginTime: number | null = null;
 let answerIndex = 0;
-let jobIndex = 0;
+let generatedQuestion: GeneratedQuestion | null = null;
 
 function formNext(firstUpdate: boolean = false) {
 	// Advance indices
+	generatedQuestion = surveyQuestion.generateQuestion();
 	if (!firstUpdate) {
 		answerIndex += 2;
-		jobIndex = Math.floor(Math.random() * jobs.length)
 	}
+
+	let elementImage0 = elementOption0.querySelector("img")! as HTMLImageElement;
+	let elementImage1 = elementOption1.querySelector("img")! as HTMLImageElement;
+
+	elementImage0.src = "";
+	elementImage1.src = "";
 
 	const loadImage = (source: string): Promise<HTMLImageElement> => {
 		return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -62,13 +70,10 @@ function formNext(firstUpdate: boolean = false) {
 	const imageSource1 = `${datasetUrl}/${images[answerIndex + 1]}`;
 	Promise.all([loadImage(imageSource0), loadImage(imageSource1)])
 		.then(([_image0, _image1]) => {
-			let elementImage0 = elementOption0.querySelector("img")! as HTMLImageElement;
-			let elementImage1 = elementOption1.querySelector("img")! as HTMLImageElement;
-
 			elementImage0.src = imageSource0;
 			elementImage1.src = imageSource1;
 
-			elementQuestion.innerHTML = `Who of these is <b style="text-transform:uppercase;">${jobs[jobIndex]}</b>?`
+			elementQuestion.innerHTML = generatedQuestion!.text;
 
 			answerBeginTime = new Date().getTime();
 			if (!formBeginTime) formBeginTime = new Date().getTime();
@@ -83,6 +88,7 @@ function formNext(firstUpdate: boolean = false) {
 
 function formEnd() {
 	elementQuestion.innerText = "Uploading results...";
+	elementTimeBarStatus?.parentElement?.remove()
 
 	const postRequest = new Request("/post-survey", {
 		method: "POST",
@@ -113,8 +119,8 @@ document.querySelectorAll("#options > .option")!.forEach((element) => {
 
 		// Add current answer
 		answers.push([
-			new Answer(answerIndex, images[answerIndex], clicked0, "todo", jobs[jobIndex], timeBarEnabled),
-			new Answer(answerIndex, images[answerIndex + 1], !clicked0, "todo", jobs[jobIndex], timeBarEnabled)]
+			new Answer(answerIndex, images[answerIndex], clicked0, "todo", generatedQuestion!.variables, timeBarEnabled),
+			new Answer(answerIndex, images[answerIndex + 1], !clicked0, "todo", generatedQuestion!.variables, timeBarEnabled)]
 		);
 
 		answerBeginTime = null;
