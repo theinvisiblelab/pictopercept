@@ -53,13 +53,12 @@ form {
         }
       }
 
-      &>.image {
+      &>img {
         width: 350px;
         height: 350px;
         background: #000;
 
-        background-image: var(--img);
-        background-size: cover;
+        object-fit: cover;
 
         border-radius: 5px;
       }
@@ -120,7 +119,9 @@ form {
     &>.status {
       color: #000;
 
-      &>span {}
+      &.exceeding {
+        color: $accent;
+      }
     }
 
     &>.time-bar {
@@ -135,12 +136,16 @@ form {
 
       &::after {
         content: '';
-        width: 50%;
+        width: var(--progress);
         height: 100%;
         position: absolute;
         top: 0;
         left: 0;
         background-color: $accent;
+      }
+
+      &.smooth::after {
+        transition: all .2s linear;
       }
     }
   }

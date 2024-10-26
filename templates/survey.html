@@ -11,32 +11,37 @@
 <body>
 	{% include 'header.html' %}
 	<form>
-		<div class="question">
-			Who of these is <b>AN ACCOUNTANT</b>?
+		<div class="question" id="question">
+			Who of these is <b>...</b>?
 		</div>
-		<div class="options">
-			<div class="option">
-				<div class="image" style="--img:url('https://placehold.co/350x350')">
-				</div>
-				<button>Person 1</button>
+		<div class="options loading" id="options">
+			<div class="option" id="option0">
+				<img src="" />
+				<button type="button">Person 1</button>
 			</div>
-			<div class="option">
-				<div class="image" style="--img:url('https://placehold.co/350x350')">
-				</div>
-				<button>Person 2</button>
+			<div class="option" id="option1">
+				<img src="" />
+				<button type="button">Person 2</button>
 			</div>
 			<div class="spinner"></div>
 		</div>
+		{% if time_bar_enabled %}
 		<div class="time-bar-outer">
 			<div class="status" id="time-bar-status">
 				⏰ Try to answer as fast as possible.
-				<span id="time-taken">Time taken: 2 seconds</span>
+				<span id="time-taken"></span>
 			</div>
-			<div class=" time-bar" style="--progress:50%;">
-			</div>
+			<div class="time-bar smooth" id="time-bar" style="--progress:0%;"></div>
 		</div>
+		{% endif %}
 	</form>
 
 </body>
+<script>
+	const images = {{image_urls | safe}}
+	const jobs = {{occupations | safe}}
+	const timeBarEnabled = "{{time_bar_enabled| safe}}" === "True";
+</script>
+<script src="/static/js/survey.js"></script>
 
 </html>
