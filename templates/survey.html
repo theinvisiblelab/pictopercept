@@ -4,8 +4,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>Survey - Pictopercept</title>
 	<link rel="stylesheet" href="/static/css/survey.css">
+	<link rel="icon" href="/static/images/favicon.png">
 </head>
 
 <body>
@@ -39,10 +40,12 @@
 </body>
 <script>
 	const datasetUrl = "{{dataset_url}}"
+	const surveyQuestionRaw = {{question | safe}}
 	const images = {{image_urls | safe}}
 	const jobs = {{occupations | safe}}
 	const timeBarEnabled = "{{time_bar_enabled| safe}}" === "True";
 </script>
+<script src="/static/js/question.js"></script>
 <script src="/static/js/survey.js"></script>
 
 </html>
