@@ -3,3 +3,6 @@ from django.shortcuts import render
 
 def index_page(request):
     return render(request, "index.html", {})
+
+def survey_page(request):
+    return render(request, "survey.html", {})

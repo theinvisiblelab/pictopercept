@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="stylesheet" href="/static/css/survey.css">
+</head>
+
+<body>
+	{% include 'header.html' %}
+	<form>
+		<div class="question">
+			Who of these is <b>AN ACCOUNTANT</b>?
+		</div>
+		<div class="options">
+			<div class="option">
+				<div class="image" style="--img:url('https://placehold.co/350x350')">
+				</div>
+				<button>Person 1</button>
+			</div>
+			<div class="option">
+				<div class="image" style="--img:url('https://placehold.co/350x350')">
+				</div>
+				<button>Person 2</button>
+			</div>
+		</div>
+		<div class="time-bar-outer">
+			<div class="status" id="time-bar-status">
+				⏰ Try to answer as fast as possible.
+				<span id="time-taken">Time taken: 2 seconds</span>
+			</div>
+			<div class=" time-bar" style="--progress:50%;">
+			</div>
+		</div>
+	</form>
+
+</body>
+
+</html>

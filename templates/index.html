@@ -9,7 +9,26 @@
 </head>
 
 <body>
-	Hello, world
+	{% include 'header.html' %}
+	<main class="page-container small">
+		<div class="double">
+			<img src="/static/images/changeface.gif" />
+			<div>
+				<p>
+					Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like "Who of these
+					is a
+					teacher?" or "Who of these is a painter?" Pick the person you think fits the job more by clicking
+					the
+					button.
+				</p>
+
+				<p>
+					Trust your instincts!
+				</p>
+			</div>
+		</div>
+		<a class="button-link" href="/survey">Let us begin!</a>
+	</main>
 </body>
 <script src="/static/js/index.js"></script>
 

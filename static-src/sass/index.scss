@@ -1,7 +1,31 @@
-html,
-body {
-  background: #202020;
-  color: #fff;
-  font-weight: bold;
-  font-size: 30px;
+@import "fonts.scss";
+@import "common.scss";
+@import "header.scss";
+
+main.page-container {
+  &>.double {
+    margin-top: 150px;
+    margin-bottom: 15px;
+    display: flex;
+    gap: 15px;
+
+    p {
+      line-height: 25px;
+
+      &:nth-child(1) {
+        margin-top: 0;
+      }
+    }
+
+    &>img {
+      width: 250px;
+      border-radius: 5px;
+    }
+
+  }
+
+  &>.button-link {
+    display: inline-block;
+    width: 100%;
+  }
 }
