@@ -7,6 +7,23 @@ from numpy import random
 from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
 import json
+import numpy as np
+
+from os import environ
+import pymongo
+
+def connectMongoDB():
+    try:
+        db_url = f'mongodb+srv://{environ.get("MONGODB_USERNAME")}:{environ.get("MONGODB_PASSWORD")}@{environ.get("MONGODB_SERVER")}/?retryWrites=true&w=majority&appName=Pictopercept'
+        client = pymongo.MongoClient(db_url)
+        client.admin.command("ping")
+        return client
+    except Exception as e:
+        print("Couldn't connect to MongoDB database. Reason: ", e)
+        exit(1)
+
+DB_CLIENT = connectMongoDB()
+ANSWERS_COLLECTION = DB_CLIENT["main_db"]["answers"]
 
 BASE_DIR = settings.BASE_DIR
 
@@ -74,11 +91,17 @@ def survey_post_page(request):
             valid = valid0 and valid1 and (answer[0]["chosen"] != answer[1]["chosen"])
 
             if valid:
-                possible_answers_index += 2;
+                possible_answers_index += 2
             else:
                 return JsonResponse({'error': 'Invalid answers'}, status = 500)
 
-        # TODO: Post results to DB
-        return JsonResponse({'status': 'Ok'})
-    except:
-        return JsonResponse({'error': 'Error handling body data'}, status = 500)
+        try:
+            ANSWERS_COLLECTION.insert_many(list(np.concatenate(answers)))
+        except pymongo.errors.OperationFailure:
+            print("There was an error inserting the answers...")
+            return JsonResponse({'error': 'Error pushing answers.'}, status = 500)
+        else:
+            return JsonResponse({'status': 'Ok'})
+
+    except Exception as e:
+        return JsonResponse({'error': 'Error handling body data (' + str(e) +')'}, status = 500)
