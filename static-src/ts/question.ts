@@ -61,7 +61,6 @@ class QuestionGenerator {
 			}
 		})
 
-		console.log(JSON.stringify(usedVariables))
 		return new GeneratedQuestion(generatedQuestion, usedVariables);
 	}
 }
