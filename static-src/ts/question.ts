@@ -1,6 +1,6 @@
 class GeneratedQuestion {
-	text: string;
-	variables: { [key: string]: string }
+	readonly text: string;
+	readonly variables: { [key: string]: string }
 
 	constructor(text: string, variables: { [key: string]: string }) {
 		this.text = text;
@@ -9,8 +9,8 @@ class GeneratedQuestion {
 }
 
 class QuestionGenerator {
-	text: string;
-	variableMap: { [key: string]: string[] };
+	readonly text: string;
+	readonly variableMap: { [key: string]: string[] };
 
 	// Expects the following formats. 
 	// Example #1

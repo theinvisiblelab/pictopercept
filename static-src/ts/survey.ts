@@ -1,172 +1,196 @@
-class Answer {
+// This variables are passed from the HTML <script> tag, as they
+// have to come from Django
+declare var surveyQuestionRaw: any;
+declare var images: Array<string>;
+declare var timeBarEnabled: boolean;
+declare var datasetUrl: string;
+
+const TIME_BAR_MAX_SECONDS: number = 5;
+const FORM_MAX_SECONDS: number = 60;
+
+interface Answer {
 	index: number;
 	image: string;
 	chosen: boolean;
 	userId: string;
 	timeBarEnabled: boolean;
 	questionVariables: { [key: string]: string }
-
-	constructor(index: number, image: string, chosen: boolean, userId: string, questionVariables: { [key: string]: string }, timeBarEnabled: boolean) {
-		this.index = index;
-		this.image = image;
-		this.chosen = chosen;
-		this.userId = userId;
-		this.questionVariables = questionVariables;
-		this.timeBarEnabled = timeBarEnabled;
-	}
 };
 
-// Declare some DOM for easy access 
-const elementQuestion = document.getElementById("question")!;
-const elementOptions = document.getElementById("options")!;
-const elementOption0 = document.getElementById("option0")!;
-const elementOption1 = document.getElementById("option1")!;
-const elementTimeBarStatus = document.getElementById("time-bar-status")!;
-const elementTimeBarTaken = document.getElementById("time-taken")!;
-const elementTimeBar = document.getElementById("time-bar")! as HTMLElement;
+interface SurveyDomElements {
+	question: HTMLElement;
+	options: HTMLElement;
 
-declare var surveyQuestionRaw: any;
-declare var images: Array<string>; // Value set from HTML
-declare var timeBarEnabled: boolean; // Value set from HTML
-declare var datasetUrl: string; // Value set from HTML
+	option0: HTMLElement;
+	option1: HTMLElement;
 
-const surveyQuestion = new QuestionGenerator(surveyQuestionRaw["text"], surveyQuestionRaw["variables"]);
+	optionImage0: HTMLImageElement;
+	optionImage1: HTMLImageElement;
+}
 
-const TIME_BAR_MAX_SECONDS: number = 5;
-const FORM_MAX_SECONDS: number = 60;
+//
+// Class that holds the Survey data, HTML elements
+// and timers.
+//
+// It handles the option/answer clicks, posting the data,
+// image loading, etc.
+//
+class Survey {
+	private readonly domElements: SurveyDomElements = this.initializeDom();
+	private readonly surveyTimer: Timer = new Timer();
+	timeBar: TimeBar | null = null;
 
-const answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
+	private readonly questionGenerator: QuestionGenerator;
+	private currentQuestion: GeneratedQuestion | null = null;
 
-let formBeginTime: number | null = null;
-let answerBeginTime: number | null = null;
-let answerIndex = 0;
-let generatedQuestion: GeneratedQuestion | null = null;
+	private answerIndex: number = -2;
+	private readonly answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
 
-function formNext(firstUpdate: boolean = false) {
-	// Advance indices
-	generatedQuestion = surveyQuestion.generateQuestion();
-	if (!firstUpdate) {
-		answerIndex += 2;
+	constructor() {
+		this.initializeListeners();
+
+		if (timeBarEnabled)
+			this.timeBar = new TimeBar();
+
+		this.questionGenerator = new QuestionGenerator(surveyQuestionRaw["text"], surveyQuestionRaw["variables"]);
+
+		setInterval(() => this.timeBar?.update(), 100);
+		this.advanceSurvey();
 	}
 
-	let elementImage0 = elementOption0.querySelector("img")! as HTMLImageElement;
-	let elementImage1 = elementOption1.querySelector("img")! as HTMLImageElement;
+	// Adds each HTML references to the class, to make it easier to access them.
+	initializeDom(): SurveyDomElements {
+		return {
+			question: document.getElementById("question")!,
+			options: document.getElementById("options")!,
+			option0: document.getElementById("option0")!,
+			option1: document.getElementById("option1")!,
+			optionImage0: document.querySelector("#option0 > img")! as HTMLImageElement,
+			optionImage1: document.querySelector("#option1 > img")! as HTMLImageElement,
+		};
+	}
 
-	elementImage0.src = "";
-	elementImage1.src = "";
+	// Initializes both listeners to each answer button.
+	initializeListeners() {
+		this.domElements.option0.addEventListener("click", () => {
+			this.handleOptionClick(0);
 
-	const loadImage = (source: string): Promise<HTMLImageElement> => {
-		return new Promise<HTMLImageElement>((resolve, reject) => {
-			let image = new Image();
-			image.src = source;
-
-			image.onload = () => resolve(image);
-			image.onerror = () => reject(new Error("Could not load the image. Error"));
 		});
-	};
+		this.domElements.option1.addEventListener("click", () => {
+			this.handleOptionClick(1);
 
-	// Load the new images
-	const imageSource0 = `${datasetUrl}/${images[answerIndex]}`;
-	const imageSource1 = `${datasetUrl}/${images[answerIndex + 1]}`;
-	Promise.all([loadImage(imageSource0), loadImage(imageSource1)])
-		.then(([_image0, _image1]) => {
-			elementImage0.src = imageSource0;
-			elementImage1.src = imageSource1;
+		});
+	}
 
-			elementQuestion.innerHTML = generatedQuestion!.text;
+	// Survey is ended if 60 seconds passed, or used completed
+	// all the questions.
+	shouldTheSurveyEnd(): boolean {
+		return (this.surveyTimer.getSecondsPassed() >= FORM_MAX_SECONDS
+			|| this.answerIndex >= images.length);
+	}
 
-			answerBeginTime = new Date().getTime();
-			if (!formBeginTime) formBeginTime = new Date().getTime();
-
-			elementOptions.classList.remove("loading")
-			elementTimeBar?.classList.add("smooth");
-		})
-		.catch((error) => {
-			console.error(error)
-		})
-}
-
-function formEnd() {
-	elementQuestion.innerText = "Uploading results...";
-	elementTimeBarStatus?.parentElement?.remove()
-
-	const postRequest = new Request("/post-survey", {
-		method: "POST",
-		body: JSON.stringify(answers),
-	});
-
-	fetch(postRequest).then(async (response) => {
-		if (response.status == 200) {
-			console.log("Results posted.");
-		} else {
-			const responseText = await response.json();
-			console.error("Error posting the results.. Got status: ", response.status);
-			console.error(responseText)
-		}
-	}).catch((error) => {
-		console.error("Error posting the results...", error);
-	});
-}
-
-document.querySelectorAll("#options > .option")!.forEach((element) => {
-	const clicked0 = element.id === "option0";
-
-	element.addEventListener("click", () => {
-		// Hide options
-		elementOptions.classList.add("loading");
-		elementTimeBar?.classList.remove("smooth");
-		elementTimeBar?.style.setProperty("--progress", `0%`);
+	// Action that gets done when one of the buttons of answer is pressed.
+	handleOptionClick(option: number) {
+		this.domElements.options.classList.add("loading");
 
 		// Add current answer
-		answers.push([
-			new Answer(answerIndex, images[answerIndex], clicked0, "todo", generatedQuestion!.variables, timeBarEnabled),
-			new Answer(answerIndex, images[answerIndex + 1], !clicked0, "todo", generatedQuestion!.variables, timeBarEnabled)]
-		);
+		// TODO: Revise this, as we might be able drop most of the information
+		this.answers.push([
+			{
+				index: this.answerIndex,
+				image: images[this.answerIndex],
+				chosen: option === 0,
+				userId: "todo",
+				timeBarEnabled: timeBarEnabled,
+				questionVariables: this.currentQuestion!.variables
+			},
+			{
+				index: this.answerIndex + 1,
+				image: images[this.answerIndex + 1],
+				chosen: option !== 0,
+				userId: "todo",
+				timeBarEnabled: timeBarEnabled,
+				questionVariables: this.currentQuestion!.variables
+			}
+		]);
 
-		answerBeginTime = null;
+		if (this.timeBar) {
+			this.timeBar.reset();
+		}
 
-		const secondsSpent = formBeginTime ? (new Date().getTime() - formBeginTime) / 1000 : 0;
-		const formEnded = secondsSpent >= FORM_MAX_SECONDS || answerIndex >= images.length;
-
-		formEnded ? formEnd() : formNext();
-	})
-})
-
-formNext(true)
-
-// ### Time bar related ###
-function resetTimeBar() {
-	elementTimeBar.style.setProperty("--progress", `0%`);
-	elementTimeBarTaken.innerText = "";
-	elementTimeBarStatus.classList.remove("exceeding");
-}
-
-function updateTimeBar() {
-	if (!timeBarEnabled) return;
-	if (!answerBeginTime) {
-		resetTimeBar();
-		return;
+		this.shouldTheSurveyEnd() ? this.finishSurvey() : this.advanceSurvey();
 	}
 
-	// Calculate time spent and bar percent
-	const millisecondsPassed = new Date().getTime() - answerBeginTime;
-	const secondsPassed = Math.floor(millisecondsPassed / 1000)
+	advanceSurvey() {
+		// Advance indices
+		this.currentQuestion = this.questionGenerator.generateQuestion();
+		this.answerIndex += 2;
 
-	const limitExceeded = secondsPassed >= TIME_BAR_MAX_SECONDS;
-	const barPercent = millisecondsPassed * 100 / (TIME_BAR_MAX_SECONDS * 1000);
+		// Reset image src's to prevent later flickers
+		this.domElements.optionImage0.src = "";
+		this.domElements.optionImage1.src = "";
 
-	// Update time bar text/status and its percentage
-	elementTimeBar.style.setProperty("--progress", `${barPercent}%`);
-	elementTimeBarStatus.classList.toggle("exceeding", limitExceeded);
+		const loadImage = (source: string): Promise<HTMLImageElement> => {
+			return new Promise<HTMLImageElement>((resolve, reject) => {
+				let image = new Image();
+				image.src = source;
 
-	if (secondsPassed > 0) {
-		elementTimeBarTaken.innerText = limitExceeded
-			? `Time taken: More than ${TIME_BAR_MAX_SECONDS} seconds!`
-			: `Time taken: ${secondsPassed} second${secondsPassed > 1 ? 's' : ''}`
-	} else {
-		elementTimeBarTaken.innerText = "";
+				image.onload = () => resolve(image);
+				image.onerror = () => reject(new Error("Could not load the image. Error"));
+			});
+		};
+
+		// Create new image source urls
+		const imageSource0 = `${datasetUrl}/${images[this.answerIndex]}`;
+		const imageSource1 = `${datasetUrl}/${images[this.answerIndex + 1]}`;
+
+		// Load the new images via promises.
+		// Once both images are loaded, their URL source
+		// gets put into both images, as they are already
+		// downloaded/cached in the user's browser, they
+		// get load immediately.
+		Promise.all([loadImage(imageSource0), loadImage(imageSource1)])
+			.then(([_image0, _image1]) => {
+				this.domElements.optionImage0.src = imageSource0;
+				this.domElements.optionImage1.src = imageSource1;
+
+				this.domElements.question.innerHTML = this.currentQuestion!.text;
+
+				this.timeBar?.start();
+				if (!this.surveyTimer.isInitialized()) this.surveyTimer.start();
+
+				this.domElements.options.classList.remove("loading")
+			})
+			.catch((error) => {
+				console.error(error)
+			})
+	}
+
+	// Sends all the survey answer data to the server.
+	// TODO: Not yet completed.
+	finishSurvey() {
+		this.domElements.question.innerText = "Uploading results...";
+
+		this.timeBar?.destroy();
+		this.timeBar = null;
+
+		const postRequest = new Request("/post-survey", {
+			method: "POST",
+			body: JSON.stringify(this.answers),
+		});
+
+		fetch(postRequest).then(async (response) => {
+			if (response.status == 200) {
+				console.log("Results posted.");
+			} else {
+				const responseText = await response.json();
+				console.error("Error posting the results.. Got status: ", response.status);
+				console.error(responseText)
+			}
+		}).catch((error) => {
+			console.error("Error posting the results...", error);
+		});
 	}
 }
 
-updateTimeBar();
-setInterval(updateTimeBar, 100);
+const surveyInstance = new Survey();
