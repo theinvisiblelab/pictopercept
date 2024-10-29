@@ -182,6 +182,7 @@ class Survey {
 		fetch(postRequest).then(async (response) => {
 			if (response.status == 200) {
 				console.log("Results posted.");
+				window.onbeforeunload = () => { }
 			} else {
 				const responseText = await response.json();
 				console.error("Error posting the results.. Got status: ", response.status);
@@ -194,3 +195,7 @@ class Survey {
 }
 
 const surveyInstance = new Survey();
+
+window.onbeforeunload = () => {
+	return "The survey has not finished, and all the data will be lost. Are you sure you want to leave?";
+}
