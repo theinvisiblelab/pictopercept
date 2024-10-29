@@ -154,3 +154,93 @@ form {
     }
   }
 }
+
+@media (max-width: 850px) {
+  form {
+    .options {
+      .option {
+        &>img {
+          width: 35dvw;
+          height: 35dvw;
+        }
+      }
+    }
+  }
+}
+
+/*@media (max-width: 720px) {
+  form {
+    .options {
+      .option {
+        &>img {
+          width: 250px;
+          height: 250px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 620px) {
+  form {
+    .options {
+      .option {
+        &>img {
+          width: 200px;
+          height: 200px;
+        }
+      }
+    }
+  }
+}*/
+
+@media (max-width: 540px) {
+  header {
+    position: relative;
+  }
+
+  form {
+    margin-top: 0;
+    width: 95%;
+    box-sizing: border-box;
+    padding: 15px;
+
+    &>.question {
+      font-size: 15px;
+    }
+
+    .options {
+      flex-direction: column;
+      gap: 10px;
+
+      &>.option {
+        align-items: center;
+
+        &>button {
+          width: 200px;
+        }
+
+        &>img {
+          width: 150px;
+          height: 150px;
+        }
+      }
+
+      &>.divisor {
+        width: 100%;
+        height: 1px;
+        background-color: rgba($accent, 0.1);
+      }
+    }
+
+    &>.time-bar-outer {
+      &>.status {
+        font-size: 13px;
+      }
+
+      &>.time-bar {
+        height: 5px;
+      }
+    }
+  }
+}
