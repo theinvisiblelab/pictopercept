@@ -17,7 +17,7 @@ main.page-container {
       }
     }
 
-    &>img {
+    &>div>img {
       width: 250px;
       border-radius: 5px;
     }
@@ -27,5 +27,28 @@ main.page-container {
   &>.button-link {
     display: inline-block;
     width: 100%;
+  }
+}
+
+@media (max-width: 535px) {
+  main.page-container {
+    height: 100dvh;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 80%;
+
+    &>.double {
+      margin-top: 0px;
+      flex-direction: column;
+      align-items: center;
+
+      &>div,
+      &>div>img {
+        width: 100%;
+      }
+    }
   }
 }

@@ -18,6 +18,8 @@ body {
 .page-container {
   max-width: 1000px;
   margin: 0 auto;
+  padding: 10px;
+  box-sizing: border-box;
 
   &.small {
     max-width: 700px;
