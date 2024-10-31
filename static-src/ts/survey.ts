@@ -139,7 +139,6 @@ class Survey {
 				image.onerror = () => reject(new Error("Could not load the image. Error"));
 			});
 		};
-
 		// Create new image source urls
 		const imageSource0 = `${datasetUrl}/${images[this.answerIndex]}`;
 		const imageSource1 = `${datasetUrl}/${images[this.answerIndex + 1]}`;
@@ -163,12 +162,26 @@ class Survey {
 			})
 			.catch((error) => {
 				console.error(error)
+
+				let actions: ActionButton[] = [
+					new ActionButton("Exit survey", () => { window.location.href = "/" }),
+					new ActionButton("Submit", () => { this.finishSurvey() }),
+				];
+
+				new Modal(
+					"Image loading error",
+					"We could not load the images of the current question. What do you wish to do now?",
+					actions
+				);
 			})
 	}
 
 	// Sends all the survey answer data to the server.
 	// TODO: Not yet completed.
 	finishSurvey() {
+		// Remove error modal if any
+		document.querySelector(".modal-outer")?.remove();
+
 		this.domElements.question.innerText = "Uploading results...";
 
 		this.timeBar?.destroy();
@@ -196,6 +209,6 @@ class Survey {
 
 const surveyInstance = new Survey();
 
-window.onbeforeunload = () => {
-	return "The survey has not finished, and all the data will be lost. Are you sure you want to leave?";
-}
+// window.onbeforeunload = () => {
+// 	return "The survey has not finished, and all the data will be lost. Are you sure you want to leave?";
+// }
