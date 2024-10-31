@@ -9,25 +9,25 @@ class GeneratedQuestion {
 }
 
 class QuestionGenerator {
-	readonly text: string;
+	readonly format: string;
 	readonly variableMap: { [key: string]: string[] };
 
 	// Expects the following formats. 
 	// Example #1
-	// 		text: "Who of these is {job}?"
+	// 		format: "Who of these is {job}?"
 	// 		variableMap: {
 	// 			"job": ["an engineer, "an astronaut", "a social worker"]
 	// 		}
 	//
 	// Example #2
-	// 		text: "Who of these is {job} and has a {vehicle}?"
+	// 		format: "Who of these is {job} and has a {vehicle}?"
 	// 		variableMap: {
 	// 			"job": ["an engineer, "an astronaut", "a social worker"],
 	// 			"vehicle": ["motorbike", "car", "bycicle"]
 	// 		}
 	//
-	constructor(text: string, variableMap: { [key: string]: string[] }) {
-		this.text = text;
+	constructor(format: string, variableMap: { [key: string]: string[] }) {
+		this.format = format;
 		this.variableMap = variableMap;
 	}
 
@@ -39,14 +39,14 @@ class QuestionGenerator {
 		// For example, "{variable}" would collect just "variable"
 		const variableKeys: Array<string> = Array<string>();
 		let match: RegExpExecArray | null;
-		while (match = VAR_EXPR.exec(this.text)) {
+		while (match = VAR_EXPR.exec(this.format)) {
 			if (match.length >= 1)
 				variableKeys.push(match[1])
 			else
 				console.error("The regular expresion did not match at least two results.");
 		}
 
-		let generatedQuestion = this.text;
+		let generatedQuestion = this.format;
 		let usedVariables: { [key: string]: string } = {};
 		variableKeys.forEach((variableKey) => {
 			if (this.variableMap[variableKey]) {

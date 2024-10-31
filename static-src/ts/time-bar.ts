@@ -5,8 +5,13 @@ interface TimeBarDomElements {
 }
 
 class TimeBar {
-	private timer: Timer = new Timer();
-	private domElements: TimeBarDomElements = this.initializeDom();
+	private readonly timer: Timer = new Timer();
+	private readonly domElements: TimeBarDomElements = this.initializeDom();
+	private readonly durationSeconds: number;
+
+	constructor(durationSeconds: number) {
+		this.durationSeconds = durationSeconds
+	}
 
 	initializeDom(): TimeBarDomElements {
 		return {
@@ -43,8 +48,8 @@ class TimeBar {
 		const millisecondsPassed = this.timer.getMillisecondsPassed();
 		const secondsPassed = Math.floor(this.timer.getSecondsPassed())
 
-		const limitExceeded = secondsPassed >= TIME_BAR_MAX_SECONDS;
-		const barPercent = millisecondsPassed * 100 / (TIME_BAR_MAX_SECONDS * 1000);
+		const limitExceeded = secondsPassed >= this.durationSeconds;
+		const barPercent = millisecondsPassed * 100 / (this.durationSeconds * 1000);
 
 		// Update time bar text/status and its percentage
 		this.domElements.bar!.style.setProperty("--progress", `${barPercent}%`);
@@ -52,7 +57,7 @@ class TimeBar {
 
 		if (secondsPassed > 0) {
 			this.domElements.timeTaken!.innerText = limitExceeded
-				? `Time taken: More than ${TIME_BAR_MAX_SECONDS} seconds!`
+				? `Time taken: More than ${this.durationSeconds} seconds!`
 				: `Time taken: ${secondsPassed} second${secondsPassed > 1 ? 's' : ''}`
 		} else {
 			this.domElements.timeTaken!.innerText = "";

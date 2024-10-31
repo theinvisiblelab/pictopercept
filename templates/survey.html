@@ -18,12 +18,12 @@
 		<div class="options loading" id="options">
 			<div class="option" id="option0">
 				<img src="" />
-				<button type="button">Person 1</button>
+				<button type="button">{{sustantive}} 1</button>
 			</div>
 			<div class="divisor"></div>
 			<div class="option" id="option1">
 				<img src="" />
-				<button type="button">Person 2</button>
+				<button type="button">{{sustantive}} 2</button>
 			</div>
 			<div class="spinner"></div>
 		</div>
@@ -44,6 +44,8 @@
 	const surveyQuestionRaw = {{question | safe}}
 	const images = {{image_urls | safe}}
 	const timeBarEnabled = "{{time_bar_enabled| safe}}" === "True";
+	const answerDuration = {{answer_duration| safe}};
+	const surveyDuration = {{survey_duration| safe}};
 </script>
 <script src="/static/js/question.js"></script>
 <script src="/static/js/time-bar.js"></script>

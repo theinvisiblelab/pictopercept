@@ -1,0 +1,22 @@
+[
+	{
+		"identifier": "jobs",
+		"enabled": true,
+		"big-description": "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
+		"datasets": ["fairface/label_train.csv", "fairface/label_val.csv"],
+		"question": {
+			"format": "Who of these is {occupation}?",
+			"variables": {
+				"occupation": ["a doctor", "a lawyer", "a nurse", "an author", "a teacher", "an engineer", "a scientist", "a chef", "an artist", "an architect", "a pilot", "a journalist", "a dentist", "a therapist", "an accountant", "a musician", "a designer", "a programmer", "a pharmacist", "a plumber", "an electrician", "a librarian", "an analyst", "a consultant", "an entrepreneur", "a researcher", "a technician", "an editor", "a translator", "a veterinarian", "a social worker", "a photographer"]
+			}
+		},
+		"image-server": "https://raw.githubusercontent.com/saurabh-khanna/pictopercept/refs/heads/main/data/fairface/nomargin/",
+		"answer-timer": {
+			"mode": "random", 
+			"seconds": 5
+		},
+		"duration-seconds": 3,
+		"sustantive": "Person",
+		"db-collection": "jobs"
+	}
+]

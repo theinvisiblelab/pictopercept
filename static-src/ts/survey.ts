@@ -4,9 +4,8 @@ declare var surveyQuestionRaw: any;
 declare var images: Array<string>;
 declare var timeBarEnabled: boolean;
 declare var datasetUrl: string;
-
-const TIME_BAR_MAX_SECONDS: number = 5;
-const FORM_MAX_SECONDS: number = 60;
+declare var answerDuration: number;
+declare var surveyDuration: number;
 
 interface Answer {
 	index: number;
@@ -50,9 +49,9 @@ class Survey {
 		this.initializeListeners();
 
 		if (timeBarEnabled)
-			this.timeBar = new TimeBar();
+			this.timeBar = new TimeBar(answerDuration);
 
-		this.questionGenerator = new QuestionGenerator(surveyQuestionRaw["text"], surveyQuestionRaw["variables"]);
+		this.questionGenerator = new QuestionGenerator(surveyQuestionRaw["format"], surveyQuestionRaw["variables"]);
 
 		setInterval(() => this.timeBar?.update(), 100);
 		this.advanceSurvey();
@@ -85,7 +84,7 @@ class Survey {
 	// Survey is ended if 60 seconds passed, or used completed
 	// all the questions.
 	shouldTheSurveyEnd(): boolean {
-		return (this.surveyTimer.getSecondsPassed() >= FORM_MAX_SECONDS
+		return ((surveyDuration > -1 && this.surveyTimer.getSecondsPassed() >= surveyDuration)
 			|| this.answerIndex >= images.length);
 	}
 

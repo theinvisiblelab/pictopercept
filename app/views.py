@@ -12,6 +12,8 @@ import numpy as np
 from os import environ
 import pymongo
 
+from app.survey import Survey, load_survey, load_surveys
+
 def connectMongoDB():
     try:
         db_url = f'mongodb+srv://{environ.get("MONGODB_USERNAME")}:{environ.get("MONGODB_PASSWORD")}@{environ.get("MONGODB_SERVER")}/?retryWrites=true&w=majority&appName=Pictopercept'
@@ -23,7 +25,7 @@ def connectMongoDB():
         exit(1)
 
 DB_CLIENT = connectMongoDB()
-ANSWERS_COLLECTION = DB_CLIENT["main_db"]["answers"]
+MAIN_DB = DB_CLIENT["main_db"]
 
 BASE_DIR = settings.BASE_DIR
 
@@ -32,37 +34,33 @@ def index_page(request):
 
 
 def survey_page(request):
-    file_paths = [
-        BASE_DIR / "./app/datasets/fairface/label_train.csv",
-        BASE_DIR / "./app/datasets/fairface/label_val.csv"
-    ]
-    df = pd.concat((pd.read_csv(file) for file in file_paths), ignore_index=True)
-    df = df[~df['age'].isin(['0-2', '3-9', '10-19'])]  # drop non-adults
-    df = df.sample(frac=1).reset_index(drop=True)  # shuffle rows
+    survey = load_survey("jobs")
+    if isinstance(survey, Survey):
+        df = survey.load_datasets()
 
-    # Question object format defined in "/static-src/ts/question.ts"
-    question = {
-        "text": "Who of these is {job}?",
-        "variables": {
-            "job":  ['a doctor', 'a lawyer', 'a nurse', 'an author', 'a teacher', 'an engineer', 'a scientist', 'a chef', 'an artist', 'an architect', 'a pilot', 'a journalist', 'a dentist', 'a therapist', 'an accountant', 'a musician', 'a designer',
-                'a programmer', 'a pharmacist', 'a plumber', 'an electrician', 'a librarian', 'an analyst', 'a consultant', 'an entrepreneur', 'a researcher', 'a technician', 'an editor', 'a translator', 'a veterinarian', 'a social worker', 'a photographer']
-        }
-    }
+        image_urls = df[:200]["file"].tolist()
+        time_bar_enabled = survey.use_timer_bar()
+        time_bar_duration = -1
+        if survey.answer_timer is not None and time_bar_enabled:
+            time_bar_duration = survey.answer_timer.seconds
 
-    image_urls = df[:200]["file"].tolist()
-    time_bar_enabled = random.choice([True, False])
+        # User ID might not be needed
+        request.session["user_id"] = str(uuid.uuid4())
+        request.session["survey_db_collection"] = survey.db_collection
+        request.session["possible_answers"] = image_urls;
+        request.session["time_bar_enabled"] = str(time_bar_enabled);
 
-    # User ID might not be needed
-    request.session["user_id"] = str(uuid.uuid4())
-    request.session["possible_answers"] = image_urls;
-    request.session["time_bar_enabled"] = str(time_bar_enabled);
-
-    return render(request, "survey.html", {
-        "dataset_url" : "https://raw.githubusercontent.com/saurabh-khanna/pictopercept/refs/heads/main/data/fairface/nomargin",
-        "image_urls":image_urls,
-        "time_bar_enabled": time_bar_enabled,
-        "question": question,
-    })
+        return render(request, "survey.html", {
+            "dataset_url" : survey.image_server,
+            "image_urls":image_urls,
+            "time_bar_enabled": time_bar_enabled,
+            "answer_duration": time_bar_duration,
+            "question": survey.question.as_json(),
+            "survey_duration": survey.duration_seconds if survey.duration_seconds is not None else -1,
+            "sustantive": survey.sustantive
+        })
+    else:
+        return HttpResponse(b"Survey not found.");
 
 # TODO: Handle CSRF properly
 @csrf_exempt
@@ -96,7 +94,8 @@ def survey_post_page(request):
                 return JsonResponse({'error': 'Invalid answers'}, status = 500)
 
         try:
-            ANSWERS_COLLECTION.insert_many(list(np.concatenate(answers)))
+            collection_name = request.session["survey_db_collection"]
+            MAIN_DB[collection_name].insert_many(list(np.concatenate(answers)))
         except pymongo.errors.OperationFailure:
             print("There was an error inserting the answers...")
             return JsonResponse({'error': 'Error pushing answers.'}, status = 500)
