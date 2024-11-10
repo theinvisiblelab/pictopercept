@@ -37,7 +37,9 @@ interface SurveyDomElements {
 class Survey {
 	private readonly domElements: SurveyDomElements = this.initializeDom();
 	private readonly surveyTimer: Timer = new Timer();
+
 	timeBar: TimeBar | null = null;
+	private barAnimationFrame: number | null = null
 
 	private readonly questionGenerator: QuestionGenerator;
 	private currentQuestion: GeneratedQuestion | null = null;
@@ -53,7 +55,17 @@ class Survey {
 
 		this.questionGenerator = new QuestionGenerator(surveyQuestionRaw["format"], surveyQuestionRaw["variables"]);
 
-		setInterval(() => this.timeBar?.update(), 100);
+		if (this.timeBar !== null) {
+			const updateTimeBar = () => {
+				if (this.timeBar !== null) {
+					this.timeBar!.update();
+					this.barAnimationFrame = requestAnimationFrame(updateTimeBar)
+				}
+			}
+
+			this.barAnimationFrame = requestAnimationFrame(updateTimeBar)
+		}
+
 		this.advanceSurvey();
 	}
 
@@ -183,8 +195,11 @@ class Survey {
 
 		this.domElements.question.innerText = "Uploading results...";
 
-		this.timeBar?.destroy();
-		this.timeBar = null;
+		if (this.timeBar) {
+			this.timeBar.destroy();
+			this.timeBar = null;
+			cancelAnimationFrame(this.barAnimationFrame!)
+		}
 
 		const postRequest = new Request("/post-survey", {
 			method: "POST",
@@ -208,6 +223,6 @@ class Survey {
 
 const surveyInstance = new Survey();
 
-// window.onbeforeunload = () => {
-// 	return "The survey has not finished, and all the data will be lost. Are you sure you want to leave?";
-// }
+window.onbeforeunload = () => {
+	return "The survey has not finished, and all the data will be lost. Are you sure you want to leave?";
+}
