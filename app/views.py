@@ -79,8 +79,6 @@ def survey_post_page(request):
         # Each answer is a pair containing both
         # options to choose from
         for answer in answers:
-            print(answer)
-
             image0 = answer[0]["image"]
             image1 = answer[1]["image"]
 
@@ -91,10 +89,34 @@ def survey_post_page(request):
             # Ensure only one of them is chosen
             valid = valid0 and valid1 and (answer[0]["chosen"] != answer[1]["chosen"])
 
+            # Ensure each field can only be the allowed type
+            valid = valid and isinstance(answer[0]["index"], int) and isinstance(answer[1]["index"], int)
+            valid = valid and isinstance(answer[0]["image"], str) and isinstance(answer[1]["image"], str)
+            valid = valid and isinstance(answer[0]["chosen"], bool) and isinstance(answer[1]["chosen"], bool)
+            valid = valid and isinstance(answer[0]["userId"], str) and isinstance(answer[1]["userId"], str)
+            valid = valid and isinstance(answer[0]["timeBarEnabled"], bool) and isinstance(answer[1]["timeBarEnabled"], bool)
+            valid = valid and isinstance(answer[0]["questionVariables"], dict) and isinstance(answer[1]["questionVariables"], dict)
+
             if valid:
                 possible_answers_index += 2
             else:
                 return JsonResponse({'error': 'Invalid answers'}, status = 500)
+
+        # Getting here means the form is valid
+        # Sanitize content, so only what is needed gets saved in the database
+        clean_answers = []
+        for answer in answers:
+            clean_answer = []
+            for i in range(0, 2):
+                clean_answer.append({
+                    "index": answer[i]["index"],
+                    "image": answer[i]["image"],
+                    "chosen": answer[i]["chosen"],
+                    "userId": answer[i]["userId"],
+                    "timeBarEnabled": answer[i]["timeBarEnabled"],
+                    "questionVariables": answer[i]["questionVariables"],
+                })
+            clean_answers.append(clean_answer)
 
         try:
             collection_name = request.session["survey_db_collection"]
