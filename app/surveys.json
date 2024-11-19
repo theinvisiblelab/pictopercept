@@ -15,7 +15,7 @@
 			"mode": "random", 
 			"seconds": 5
 		},
-		"duration-seconds": 60,
+		"duration-seconds": 5,
 		"sustantive": "Person",
 		"db-collection": "jobs"
 	}

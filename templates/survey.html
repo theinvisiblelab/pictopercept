@@ -12,6 +12,7 @@
 <body>
 	{% include 'header.html' %}
 	<form>
+		{% csrf_token %}
 		<div class="question" id="question">
 			Who of these is <b>...</b>?
 		</div>
@@ -35,7 +36,7 @@
 				<div class="spinner"></div>
 				<span>Hold on, we are saving your answers...</span>
 			</div>
-			<img class="end-image" src="http://localhost:8000/static/images/changeface.gif" />
+			<img class="end-image" src="/static/images/changeface.gif" />
 		</div>
 		{% if time_bar_enabled %}
 		<div class="time-bar-outer">

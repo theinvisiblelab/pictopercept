@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.conf import settings
 from numpy import random
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.clickjacking import xframe_options_exempt
 import pandas as pd
 import json
 import numpy as np
@@ -29,10 +30,12 @@ MAIN_DB = DB_CLIENT["main_db"]
 
 BASE_DIR = settings.BASE_DIR
 
+@xframe_options_exempt
 def index_page(request):
     return render(request, "index.html", {})
 
 
+@xframe_options_exempt
 def survey_page(request):
     survey = load_survey("jobs")
     if isinstance(survey, Survey):
@@ -63,7 +66,7 @@ def survey_page(request):
         return HttpResponse(b"Survey not found.");
 
 # TODO: Handle CSRF properly
-@csrf_exempt
+#@csrf_exempt
 def survey_post_page(request):
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request'}, status = 400)

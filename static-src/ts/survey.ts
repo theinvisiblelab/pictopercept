@@ -209,9 +209,13 @@ class Survey {
 			cancelAnimationFrame(this.barAnimationFrame!)
 		}
 
+		const csrftoken = (document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement).value;
 		const postRequest = new Request("/post-survey", {
 			method: "POST",
 			body: JSON.stringify(this.answers),
+
+			headers: { 'X-CSRFToken': csrftoken },
+			mode: 'same-origin' // Do not send CSRF token to another domain.
 		});
 
 		fetch(postRequest).then(async (response) => {
