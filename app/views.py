@@ -11,6 +11,7 @@ import json
 import numpy as np
 
 from os import environ
+from pydantic import BaseModel, Field
 import pymongo
 
 from app.survey import Survey, load_survey, load_surveys
@@ -64,68 +65,73 @@ def survey_page(request):
         })
     else:
         return HttpResponse(b"Survey not found.");
+ 
+class Answer(BaseModel):
+    index: int = Field()
+    image: str = Field()
+    chosen: bool = Field()
+    userId: str = Field() # maybe remove this
+    timeBarEnabled: bool = Field()
+    questionVariables: Dict[str, str] = Field()
 
-# TODO: Handle CSRF properly
-#@csrf_exempt
+    def to_dictionary(self):
+        return {
+            "index": self.index,
+            "image": self.image,
+            "chosen": self.chosen,
+            "userId": self.userId,
+            "timeBarEnabled": self.timeBarEnabled,
+            "questionVariables": self.questionVariables,
+        }
+
 def survey_post_page(request):
     if request.method != "POST":
         return JsonResponse({'error': 'Invalid request'}, status = 400)
 
     try:
-        answers = json.loads(request.body.decode('utf-8'))
-        # TODO: Sanitize body
-
-        possible_answers_index = 0
         # Each answer is a pair containing both
         # options to choose from
-        for answer in answers:
-            image0 = answer[0]["image"]
-            image1 = answer[1]["image"]
+        answers = json.loads(request.body.decode('utf-8'))
 
-            # Ensure both options are the user's available answers
-            valid0 = request.session["possible_answers"][possible_answers_index] == image0
-            valid1 = request.session["possible_answers"][possible_answers_index+1] == image1
+        current_answer_index = 0
 
-            # Ensure only one of them is chosen
-            valid = valid0 and valid1 and (answer[0]["chosen"] != answer[1]["chosen"])
-
-            # Ensure each field can only be the allowed type
-            valid = valid and isinstance(answer[0]["index"], int) and isinstance(answer[1]["index"], int)
-            valid = valid and isinstance(answer[0]["image"], str) and isinstance(answer[1]["image"], str)
-            valid = valid and isinstance(answer[0]["chosen"], bool) and isinstance(answer[1]["chosen"], bool)
-            valid = valid and isinstance(answer[0]["userId"], str) and isinstance(answer[1]["userId"], str)
-            valid = valid and isinstance(answer[0]["timeBarEnabled"], bool) and isinstance(answer[1]["timeBarEnabled"], bool)
-            valid = valid and isinstance(answer[0]["questionVariables"], dict) and isinstance(answer[1]["questionVariables"], dict)
-
-            if valid:
-                possible_answers_index += 2
-            else:
-                return JsonResponse({'error': 'Invalid answers'}, status = 500)
-
-        # Getting here means the form is valid
-        # Sanitize content, so only what is needed gets saved in the database
+        # Note: While it is rare that anyone would try to "fake spam" survey
+        # data, we check each answer structure and types, to ensure they
+        # are actually the correct ones.
         clean_answers = []
         for answer in answers:
-            clean_answer = []
             for i in range(0, 2):
-                clean_answer.append({
-                    "index": answer[i]["index"],
-                    "image": answer[i]["image"],
-                    "chosen": answer[i]["chosen"],
-                    "userId": answer[i]["userId"],
-                    "timeBarEnabled": answer[i]["timeBarEnabled"],
-                    "questionVariables": answer[i]["questionVariables"],
-                })
-            clean_answers.append(clean_answer)
+                try:
+                    clean_answer = Answer(**answer[i])
+                except Exception:
+                    raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
+
+                # Ensure the image is the set of the user
+                valid = request.session["possible_answers"][current_answer_index] == clean_answer.image
+
+                # Ensure the time bar enabled is also correct
+                valid = valid and request.session["time_bar_enabled"] == clean_answer.timeBarEnabled
+
+                if valid:
+                    # Append the answer in Dict format (which is needed for MongoDB or any document-DB)
+                    clean_answers.append(clean_answer.model_dump())
+                    current_answer_index += 1
+                else:
+                    raise Exception("The answers provided do not match with the user-specific ones.")
 
         try:
             collection_name = request.session["survey_db_collection"]
-            MAIN_DB[collection_name].insert_many(list(np.concatenate(answers)))
+            MAIN_DB[collection_name].insert_many(clean_answers)
         except pymongo.errors.OperationFailure:
-            print("There was an error inserting the answers...")
-            return JsonResponse({'error': 'Error pushing answers.'}, status = 500)
+            return JsonResponse({'error': 'There was an error with the database while saving your answers.'}, status = 500)
         else:
-            return JsonResponse({'status': 'Ok'})
+            # Clear session
+            del request.session["user_id"]
+            del request.session["survey_db_collection"]
+            del request.session["possible_answers"]
+            del request.session["time_bar_enabled"]
+            request.session.modified = True
 
+            return JsonResponse({'status': 'Ok'})
     except Exception as e:
-        return JsonResponse({'error': 'Error handling body data (' + str(e) +')'}, status = 500)
+        return JsonResponse({'error': f"Error validating the answers: '{str(e)}'"}, status = 400)
