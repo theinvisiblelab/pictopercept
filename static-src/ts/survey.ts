@@ -19,6 +19,7 @@ interface Answer {
 interface SurveyDomElements {
 	question: HTMLElement;
 	options: HTMLElement;
+	surveyEnd: HTMLElement;
 
 	option0: HTMLElement;
 	option1: HTMLElement;
@@ -74,6 +75,7 @@ class Survey {
 		return {
 			question: document.getElementById("question")!,
 			options: document.getElementById("options")!,
+			surveyEnd: document.getElementById("survey-end")!,
 			option0: document.getElementById("option0")!,
 			option1: document.getElementById("option1")!,
 			optionImage0: document.querySelector("#option0 > img")! as HTMLImageElement,
@@ -193,7 +195,13 @@ class Survey {
 		// Remove error modal if any
 		document.querySelector(".modal-outer")?.remove();
 
-		this.domElements.question.innerText = "Uploading results...";
+		this.domElements.question.innerText = "Thank you!";
+		this.domElements.question.style.paddingBottom = "10px";
+		//this.domElements.options.style.visibility = "hidden"
+		this.domElements.options.remove()
+
+		this.domElements.surveyEnd.classList.add("visible");
+		this.domElements.surveyEnd.classList.add("loading");
 
 		if (this.timeBar) {
 			this.timeBar.destroy();
@@ -209,6 +217,8 @@ class Survey {
 		fetch(postRequest).then(async (response) => {
 			if (response.status == 200) {
 				console.log("Results posted.");
+				this.domElements.surveyEnd.classList.remove("loading");
+				this.domElements.surveyEnd.classList.add("done");
 				window.onbeforeunload = () => { }
 			} else {
 				const responseText = await response.json();
