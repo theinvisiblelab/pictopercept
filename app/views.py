@@ -1,20 +1,16 @@
-from typing import Dict, List
-import uuid
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.conf import settings
-from numpy import random
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.clickjacking import xframe_options_exempt
-import pandas as pd
-import json
-import numpy as np
 
-from os import environ
+from app.survey import load_survey
+
 from pydantic import BaseModel, Field
+from typing import Dict
+from os import environ
 import pymongo
-
-from app.survey import Survey, load_survey, load_surveys
+import uuid
+import json
 
 def connectMongoDB():
     try:
@@ -31,15 +27,15 @@ MAIN_DB = DB_CLIENT["main_db"]
 
 BASE_DIR = settings.BASE_DIR
 
+# Allow iframe embedding
 @xframe_options_exempt
 def index_page(request):
     return render(request, "index.html", {})
 
-
 @xframe_options_exempt
 def survey_page(request):
     survey = load_survey("jobs")
-    if isinstance(survey, Survey):
+    if survey is not None:
         df = survey.load_datasets()
 
         image_urls = df[:200]["file"].tolist()
@@ -59,12 +55,12 @@ def survey_page(request):
             "image_urls":image_urls,
             "time_bar_enabled": time_bar_enabled,
             "answer_duration": time_bar_duration,
-            "question": survey.question.as_json(),
+            "question": survey.question.model_dump(),
             "survey_duration": survey.duration_seconds if survey.duration_seconds is not None else -1,
             "sustantive": survey.sustantive
         })
     else:
-        return HttpResponse(b"Survey not found.");
+        return HttpResponse(b"Survey not found.", status=404);
  
 class Answer(BaseModel):
     index: int = Field()
