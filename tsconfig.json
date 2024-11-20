@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"outDir": "./static/js",
+		"outDir": "./pictopercept/static/js",
 		"rootDir": "./static-src/ts",
 		"strict": true,
 		"module": "commonjs",

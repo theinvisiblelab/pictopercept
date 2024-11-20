@@ -4,12 +4,12 @@
 - **Python** >= `3.12.7`
 - **node** >= `22.10.0`
 
-## Folder structure
-- `app` -> Holds the web/Django's backend code, such as the `views.py` and `urls.py`, that define the routes and what gets shown. Inside also resides the `surveys.json` file.
-- `config` -> Where the Django's configuration resides. Won't need much editing probably.
+## Project structure
+- `pictopercept` -> Holds the web/Flask's python backend code, such as the `views.py` and `urls.py`, that define the routes and what gets shown. Inside also resides the `surveys.json` file.
+- `pictopercept/templates` -> Where all the **HTML** files are located, which are the final web pages that the user will see. They use basic *Flask/Jinja2* templating, to pass variables from *Python* to them.
+- `pictopercept/static` -> Holds the static files such as fonts, images, and later the compiled `static-src` files.
+- `pictopercept/surveys.json` -> Where the active survey list reside. Check the structure inside `pictopercept/survey.py` python class. (currently, the default one is `jobs` survey, but this can be easily changed to point via url in the future (e.g. `pictopercept.ai/survey/<survey-id>`).
 - `static-src` -> Here, all the front-end **SASS** styling and **TypeScript** code resides. When building the project, these files will transpile to pure **CSS** and **JavaScript**, which is needed for browsers.
-- `static` -> Holds the static files such as fonts, images, and later the compiled `static-src` files.
-- `templates` -> Where all the **HTML** files are located, which are the final web pages that the user will see. They use basic *Django* templating, to pass variables from *Python* to them.
 
 ## Developing
 Install the tools defined in [requirements](#requirements).
@@ -28,7 +28,7 @@ pip3 install -r requirements.txt
 ```
 To manually run the server, you can run:
 ```
-python3 manage.py runserver
+flask run --debug
 ```
 but it is recommended to execute it via `npm run watch` command, which it's explained in the following section, [Npm/Node-basic-setup](#npmnode-basic-setup)
 
@@ -45,13 +45,14 @@ npm run watch
 ```
 This command will:
 - Transpile on each `static-src` file change all the **SASS** and **TypeScript** code into the `static` folder.
-- Run the Python/Django server on port **8000**.
+- Run the Python/Flask server on port **5000**, in **Debug** mode.
 
 > [!NOTE]
-> Your `print` statements might not be visible while using `npm run watch`. To make them visible, use instead of `print`:
+> Your `print` statements might not be visible while using `npm run watch`. To make them visible, use the logger instead of `print`:
 > ```python
->  logging.getLogger(__name__).log("Your message goes here.")
+>  logging.getLogger(__name__).debug("Your message goes here."); # .debug(), .warning(), .error() and .critical() are other alternatives.
 > ```
+> or just execute the server manually via `flask run` command, which would also output `print` statements.
 
 
 ## Building

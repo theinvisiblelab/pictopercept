@@ -2,13 +2,13 @@
   "name": "pictopercept",
   "version": "0.0.0",
   "scripts": {
-	  "build:sass": "sass --no-source-map static-src/sass:static/css",
+	  "build:sass": "sass --no-source-map static-src/sass:pictopercept/static/css",
 	  "build:ts": "tsc",
 	  "build": "npm run build:sass && npm run build:ts",
-	  "django": "python3 manage.py runserver",
-	  "watch:sass": "sass --watch --no-source-map static-src/sass:static/css",
+	  "flask": "flask run --debug",
+	  "watch:sass": "sass --watch --no-source-map static-src/sass:pictopercept/static/css",
 	  "watch:ts": "tsc --watch",
-	  "watch": "concurrently -k -p \"[{name}]\" -c \"blue.bold,green.bold,yellow\" \"npm:watch:sass\" \"npm:watch:ts\" \"npm:django\""
+	  "watch": "concurrently -k -p \"[{name}]\" -c \"blue.bold,green.bold,yellow\" \"npm:watch:sass\" \"npm:watch:ts\" \"npm:flask\""
   },
   "license": "AGPL-3.0",
   "devDependencies": {

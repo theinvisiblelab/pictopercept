@@ -12,7 +12,7 @@
 <body>
 	{% include 'header.html' %}
 	<form>
-		{% csrf_token %}
+		<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
 		<div class="question" id="question">
 			Who of these is <b>...</b>?
 		</div>

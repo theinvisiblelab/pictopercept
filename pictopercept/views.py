@@ -1,16 +1,12 @@
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-from django.conf import settings
-
-from app.survey import load_survey
-
-from pydantic import BaseModel, Field
 from typing import Dict
+import uuid
+from flask import make_response, render_template, request, session
+from flask import Blueprint
+from flask_wtf.csrf import logging
+from pydantic import Field, BaseModel
+from pictopercept.survey import load_survey
 from os import environ
 import pymongo
-import uuid
-import json
 
 def connectMongoDB():
     try:
@@ -19,21 +15,21 @@ def connectMongoDB():
         client.admin.command("ping")
         return client
     except Exception as e:
-        print("Couldn't connect to MongoDB database. Reason: ", e)
+        logging.getLogger(__name__).critical(f"Couldn't connect to MongoDB database. Reason: {e}")
         exit(1)
 
 DB_CLIENT = connectMongoDB()
 MAIN_DB = DB_CLIENT["main_db"]
 
-BASE_DIR = settings.BASE_DIR
+# Route definitions
+main_routes = Blueprint('main', __name__)
 
-# Allow iframe embedding
-@xframe_options_exempt
-def index_page(request):
-    return render(request, "index.html", {})
+@main_routes.route("/", methods=['GET'])
+def index():
+    return render_template("index.html")
 
-@xframe_options_exempt
-def survey_page(request):
+@main_routes.route("/survey", methods=['GET'])
+def survey():
     survey = load_survey("jobs")
     if survey is not None:
         df = survey.load_datasets()
@@ -44,13 +40,12 @@ def survey_page(request):
         if survey.answer_timer is not None and time_bar_enabled:
             time_bar_duration = survey.answer_timer.seconds
 
-        # User ID might not be needed
-        request.session["user_id"] = str(uuid.uuid4())
-        request.session["survey_db_collection"] = survey.db_collection
-        request.session["possible_answers"] = image_urls;
-        request.session["time_bar_enabled"] = str(time_bar_enabled);
+        session["user_id"] = str(uuid.uuid4()) # User ID might not be needed
+        session["survey_db_collection"] = survey.db_collection
+        session["possible_answers"] = image_urls;
+        session["time_bar_enabled"] = time_bar_enabled;
 
-        return render(request, "survey.html", {
+        return render_template("survey.html", **{
             "dataset_url" : survey.image_server,
             "image_urls":image_urls,
             "time_bar_enabled": time_bar_enabled,
@@ -60,8 +55,10 @@ def survey_page(request):
             "sustantive": survey.sustantive
         })
     else:
-        return HttpResponse(b"Survey not found.", status=404);
- 
+        r = make_response("Survey not found.")
+        r.status_code = 404
+        return r
+
 class Answer(BaseModel):
     index: int = Field()
     image: str = Field()
@@ -80,14 +77,12 @@ class Answer(BaseModel):
             "questionVariables": self.questionVariables,
         }
 
-def survey_post_page(request):
-    if request.method != "POST":
-        return JsonResponse({'error': 'Invalid request'}, status = 400)
-
+@main_routes.route("/survey/end", methods=['POST'])
+def survey_post_page():
     try:
         # Each answer is a pair containing both
         # options to choose from
-        answers = json.loads(request.body.decode('utf-8'))
+        answers = request.get_json()
 
         current_answer_index = 0
 
@@ -103,10 +98,10 @@ def survey_post_page(request):
                     raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
 
                 # Ensure the image is the set of the user
-                valid = request.session["possible_answers"][current_answer_index] == clean_answer.image
+                valid = session["possible_answers"][current_answer_index] == clean_answer.image
 
                 # Ensure the time bar enabled is also correct
-                valid = valid and request.session["time_bar_enabled"] == clean_answer.timeBarEnabled
+                valid = valid and session["time_bar_enabled"] == clean_answer.timeBarEnabled
 
                 if valid:
                     # Append the answer in Dict format (which is needed for MongoDB or any document-DB)
@@ -116,18 +111,19 @@ def survey_post_page(request):
                     raise Exception("The answers provided do not match with the user-specific ones.")
 
         try:
-            collection_name = request.session["survey_db_collection"]
-            MAIN_DB[collection_name].insert_many(clean_answers)
+           collection_name = session["survey_db_collection"]
+           MAIN_DB[collection_name].insert_many(clean_answers)
         except pymongo.errors.OperationFailure:
-            return JsonResponse({'error': 'There was an error with the database while saving your answers.'}, status = 500)
+            return make_response({'error': f"There was an error with the database while saving your answers."}, 500)
         else:
             # Clear session
-            del request.session["user_id"]
-            del request.session["survey_db_collection"]
-            del request.session["possible_answers"]
-            del request.session["time_bar_enabled"]
-            request.session.modified = True
+            del session["user_id"]
+            del session["survey_db_collection"]
+            del session["possible_answers"]
+            del session["time_bar_enabled"]
+            session.clear()
 
-            return JsonResponse({'status': 'Ok'})
+            return make_response({'status': "Ok"}, 200)
     except Exception as e:
-        return JsonResponse({'error': f"Error validating the answers: '{str(e)}'"}, status = 400)
+            return make_response({'error': f"Error validating the answers: '{str(e)}'"}, 400)
+

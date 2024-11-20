@@ -1,5 +1,5 @@
 // This variables are passed from the HTML <script> tag, as they
-// have to come from Django
+// have to come from Flask
 declare var surveyQuestionRaw: any;
 declare var images: Array<string>;
 declare var timeBarEnabled: boolean;
@@ -210,12 +210,15 @@ class Survey {
 		}
 
 		const csrftoken = (document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement).value;
-		const postRequest = new Request("/post-survey", {
+		const postRequest = new Request("/survey/end", {
 			method: "POST",
 			body: JSON.stringify(this.answers),
 
-			headers: { 'X-CSRFToken': csrftoken },
-			mode: 'same-origin' // Do not send CSRF token to another domain.
+			headers: {
+				"content-type": "application/json",
+				"X-CSRFToken": csrftoken
+			},
+			mode: "same-origin" // Do not send CSRF token to another domain.
 		});
 
 		fetch(postRequest).then(async (response) => {

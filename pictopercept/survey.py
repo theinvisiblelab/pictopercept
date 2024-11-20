@@ -1,13 +1,9 @@
-from django.conf import settings
-
 from pydantic import BaseModel, Field
 from typing import Dict, List
 from enum import Enum
 import pandas as pd
 import logging
 import json
-
-BASE_DIR = settings.BASE_DIR
 
 class AnswerTimerModeEnum(str, Enum):
     on = 'on'
@@ -41,18 +37,18 @@ class Survey(BaseModel):
 
 
     def load_datasets(self):
-        df = pd.concat((pd.read_csv(BASE_DIR / "app" / "datasets" / dataset) for dataset in self.datasets), ignore_index=True)
+        df = pd.concat((pd.read_csv("pictopercept/datasets/"+dataset) for dataset in self.datasets), ignore_index=True)
         df = df[~df['age'].isin(['0-2', '3-9', '10-19'])]  # drop non-adults
         df = df.sample(frac=1).reset_index(drop=True)  # shuffle rows
         return df
     
-    def use_timer_bar(self):
+    def use_timer_bar(self) -> bool:
         from numpy import random
         if self.answer_timer is not None:
             if self.answer_timer.mode == "on":
                 return True
             elif self.answer_timer.mode == "random":
-                return random.choice([True, False])
+                return bool(random.choice([True, False]))
 
         return False # If None or mode is "off"
 
@@ -61,7 +57,7 @@ def load_surveys() -> Dict[str, Survey]:
     surveys = {}
 
     try:
-        with open(BASE_DIR / "./app/surveys.json") as f:
+        with open("./pictopercept/surveys.json") as f:
             survey_datas = json.loads(f.read())
             survey_idx = 0
             for survey_data in survey_datas:
@@ -69,10 +65,12 @@ def load_surveys() -> Dict[str, Survey]:
                     survey = Survey(**survey_data)
                     surveys[survey.identifier] = survey
                 except Exception as e:
-                    logging.getLogger(__name__).warning(f'[WARNING] The survey with index {survey_idx} was not loaded. Error: {e}')
+                    logging.getLogger(__name__).critical(f'[ERROR] The survey with index {survey_idx} has an error. Error: {e}')
+                    exit(0)
                 survey_idx += 1
     except Exception as e:
-        logging.getLogger(__name__).error(f'[ERROR] Could not open the surveys file: {e}')
+        logging.getLogger(__name__).critical(f'[ERROR] Could not open the surveys file: {e}')
+        exit(0)
 
     return surveys
 
