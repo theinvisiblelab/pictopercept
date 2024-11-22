@@ -1,8 +1,8 @@
 # pictopercept
 
 ## Requirements
-- **Python** >= `3.12.7`
-- **node** >= `22.10.0`
+- **Python** >= `3.11.4`
+- **node** >= `22.11.0`
 
 ## Project structure
 - `pictopercept` -> Holds the web/Flask's python backend code, such as the `views.py` and `urls.py`, that define the routes and what gets shown. Inside also resides the `surveys.json` file.
@@ -59,5 +59,8 @@ This command will:
 Make sure you are able to reproduce the [Developing](#developing). Then, once dependencies are installed via `npm install`, you just need to run:
 `npm run build`.
 
-## Deploying
-TODO
+## Dockerfile
+## Dockerfile/Deploying
+TBD
+
+You need to pass the environment variable `MONGODB_URI` when running the image.

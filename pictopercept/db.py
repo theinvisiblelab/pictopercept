@@ -1,11 +1,7 @@
+from pymongo import MongoClient
+from os import environ
 import logging
 import errno
-from os import environ
-
-from flask import current_app, g
-from pymongo import MongoClient
-from werkzeug.local import LocalProxy
-from flask_pymongo import PyMongo
 
 client = None
 
