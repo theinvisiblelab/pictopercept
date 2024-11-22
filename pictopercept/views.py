@@ -1,25 +1,10 @@
 from typing import Dict
-import uuid
 from flask import make_response, render_template, request, session
 from flask import Blueprint
-from flask_wtf.csrf import logging
+import logging
 from pydantic import Field, BaseModel
+from pictopercept.db import db_save_survey
 from pictopercept.survey import load_survey
-from os import environ
-import pymongo
-
-def connectMongoDB():
-    try:
-        db_url = f'mongodb+srv://{environ.get("MONGODB_USERNAME")}:{environ.get("MONGODB_PASSWORD")}@{environ.get("MONGODB_SERVER")}/?retryWrites=true&w=majority&appName=Pictopercept'
-        client = pymongo.MongoClient(db_url)
-        client.admin.command("ping")
-        return client
-    except Exception as e:
-        logging.getLogger(__name__).critical(f"Couldn't connect to MongoDB database. Reason: {e}")
-        exit(1)
-
-DB_CLIENT = connectMongoDB()
-MAIN_DB = DB_CLIENT["main_db"]
 
 # Route definitions
 main_routes = Blueprint('main', __name__)
@@ -40,7 +25,6 @@ def survey():
         if survey.answer_timer is not None and time_bar_enabled:
             time_bar_duration = survey.answer_timer.seconds
 
-        session["user_id"] = str(uuid.uuid4()) # User ID might not be needed
         session["survey_db_collection"] = survey.db_collection
         session["possible_answers"] = image_urls;
         session["time_bar_enabled"] = time_bar_enabled;
@@ -111,13 +95,13 @@ def survey_post_page():
                     raise Exception("The answers provided do not match with the user-specific ones.")
 
         try:
-           collection_name = session["survey_db_collection"]
-           MAIN_DB[collection_name].insert_many(clean_answers)
-        except pymongo.errors.OperationFailure:
+           db_save_survey(clean_answers, session["survey_db_collection"])
+        except Exception as e:
+            logging.getLogger(__name__).error("[ERROR] Error saving user answers into the MongoDB database.")
+            logging.getLogger(__name__).error("[ERROR] " + str(e))
             return make_response({'error': f"There was an error with the database while saving your answers."}, 500)
         else:
             # Clear session
-            del session["user_id"]
             del session["survey_db_collection"]
             del session["possible_answers"]
             del session["time_bar_enabled"]

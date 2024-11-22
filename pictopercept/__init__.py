@@ -1,5 +1,6 @@
 from flask import Flask, render_template, session
 from flask_wtf import CSRFProtect
+
 from .views import main_routes
 
 def create_app():

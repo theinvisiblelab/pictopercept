@@ -1,3 +1,4 @@
+import errno
 from pydantic import BaseModel, Field
 from typing import Dict, List
 from enum import Enum
@@ -66,11 +67,15 @@ def load_surveys() -> Dict[str, Survey]:
                     surveys[survey.identifier] = survey
                 except Exception as e:
                     logging.getLogger(__name__).critical(f'[ERROR] The survey with index {survey_idx} has an error. Error: {e}')
-                    exit(0)
+                    exit(errno.EINTR)
                 survey_idx += 1
     except Exception as e:
         logging.getLogger(__name__).critical(f'[ERROR] Could not open the surveys file: {e}')
-        exit(0)
+        exit(errno.EINTR)
+
+    logging.getLogger(__name__).warning("[INFO] Surveys are OK.")
+    if len(surveys) == 0:
+        logging.getLogger(__name__).warning("[WARNING] There were 0 surveys loaded.")
 
     return surveys
 
