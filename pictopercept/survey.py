@@ -54,7 +54,12 @@ class Survey(BaseModel):
         return False # If None or mode is "off"
 
 
-def load_surveys() -> Dict[str, Survey]:
+loaded_surveys = None
+
+# Loads all surveys from the file 'surveys.json' into memory.
+# If there is an issue with any survey, it will exit the program.
+def load_surveys():
+    global loaded_surveys
     surveys = {}
 
     try:
@@ -77,11 +82,14 @@ def load_surveys() -> Dict[str, Survey]:
     if len(surveys) == 0:
         logging.getLogger(__name__).warning("[WARNING] There were 0 surveys loaded.")
 
-    return surveys
+    loaded_surveys = surveys
 
-def load_survey(identifier) -> Survey | None:
-    surveys = load_surveys()
-    if identifier in surveys and surveys[identifier].enabled:
-        return surveys[identifier]
+# Returns the survey by identifier, or None if not found
+# Assumes loaded_surveys is not None, as if the loading
+# of surveys fail, the program exits
+def get_survey(identifier) -> Survey | None:
+    global loaded_surveys
+    if identifier in loaded_surveys and loaded_surveys[identifier].enabled:
+        return loaded_surveys[identifier]
 
     return None

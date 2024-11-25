@@ -1,8 +1,6 @@
 import uuid
 
 class Config:
-    SECRET_KEY = uuid.uuid4().hex
-
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_PARTITIONED = True

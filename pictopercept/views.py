@@ -4,18 +4,26 @@ from flask import Blueprint
 import logging
 from pydantic import Field, BaseModel
 from pictopercept.db import db_save_survey
-from pictopercept.survey import load_survey
+from pictopercept.survey import get_survey
 
 # Route definitions
 main_routes = Blueprint('main', __name__)
 
+DEFAULT_SURVEY = 'jobs'
+
 @main_routes.route("/", methods=['GET'])
 def index():
-    return render_template("index.html")
+    survey = get_survey(DEFAULT_SURVEY)
+    if survey is not None and survey.enabled:
+        return render_template("index.html", ** {
+            "survey_description": survey.big_description,
+        })
+    else:
+        return make_response({'error': "There is no default survey set, the survey was not found, or it is not enabled."}, 404)
 
 @main_routes.route("/survey", methods=['GET'])
 def survey():
-    survey = load_survey("jobs")
+    survey = get_survey(DEFAULT_SURVEY)
     if survey is not None:
         df = survey.load_datasets()
 
