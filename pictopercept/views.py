@@ -9,7 +9,7 @@ from pictopercept.survey import get_survey
 # Route definitions
 main_routes = Blueprint('main', __name__)
 
-DEFAULT_SURVEY = 'jobs'
+DEFAULT_SURVEY = 'filmcast'
 
 @main_routes.route("/", methods=['GET'])
 def index():

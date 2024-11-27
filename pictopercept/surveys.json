@@ -18,5 +18,23 @@
 		},
 		"datasets": ["fairface/label_train.csv", "fairface/label_val.csv"],
 		"image_server": "https://raw.githubusercontent.com/saurabh-khanna/pictopercept/refs/heads/main/data/fairface/nomargin/"
+	},
+	{
+		"identifier": "filmcast",
+		"db_collection": "filmcast",
+		"enabled": true,
+		"sustantive": "Person",
+		"duration_seconds": 65,
+		"answer_timer": {
+			"mode": "random", 
+			"seconds": 5
+		},
+		"big_description": "<p>Imagine you are a film-maker. We will show you two images at a time, and ask who you will cast as the lead character in your next film. You must choose one person, and their picture is the only information you have. Your responses are anonymous, and the survey lasts 1 minute.</p><p>Trust your instincts!</p>",
+		"question": {
+			"format": "Who of these would you cast as the lead charater in your next film?",
+			"variables": {}
+		},
+		"datasets": ["fairface/label_train.csv", "fairface/label_val.csv"],
+		"image_server": "https://raw.githubusercontent.com/saurabh-khanna/pictopercept/refs/heads/main/data/fairface/nomargin/"
 	}
 ]
