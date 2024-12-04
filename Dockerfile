@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.4
+
 # Build
 FROM node:22.11-bullseye-slim as build
 
@@ -11,7 +13,7 @@ COPY ./tsconfig.json .
 RUN npm run build
 
 # Final
-FROM python:3.11.4-slim-buster
+FROM --platform=$BUILDPLATFORM python:3.11-alpine AS builder
 
 WORKDIR /app
 
@@ -28,6 +30,21 @@ COPY ./wsgi.py .
 
 COPY --from=build /app/pictopercept/static /app/pictopercept/static
 
-EXPOSE 5000
+CMD ["gunicorn", "wsgi:app"]
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]
+FROM builder as dev-envs
+
+RUN <<EOF
+apk update
+apk add git
+EOF
+
+RUN <<EOF
+addgroup -S docker
+adduser -S --shell /bin/bash --ingroup docker vscode
+EOF
+
+# install Docker tools (cli, buildx, compose)
+COPY --from=gloursdocker/docker / /
+
+CMD ["gunicorn", "wsgi:app"]

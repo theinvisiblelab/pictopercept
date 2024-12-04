@@ -1,0 +1,33 @@
+services:
+  web:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/tmp/nginx.conf
+    environment: 
+      - FLASK_SERVER_ADDR=backend:9091
+    command: /bin/bash -c "envsubst < /tmp/nginx.conf > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'" 
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      target: builder
+    # flask requires SIGINT to stop gracefully
+    # (default stop signal from Compose is SIGTERM)
+    stop_signal: SIGINT
+    environment:
+      - GUNICORN_CMD_ARGS=--bind=0.0.0.0:9091
+      - MONGODB_URI=${MONGODB_URI}
+      # TODO: Generate the secret key when building? As we don't care about its content
+      # as long as the key is always the same for the runtime.
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./:/app
+    depends_on:
+      -  mongo  
+
+  mongo:
+    image: mongo
