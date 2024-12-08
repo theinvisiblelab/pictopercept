@@ -23,3 +23,15 @@ def db_init():
 def db_save_survey(survey_content, table_name):
     global client
     client["main_db"][table_name].insert_many(survey_content)
+
+def db_temp_query(table_name):
+    global client
+    if client is not None:
+        result = client["main_db"][table_name].find({"questionVariables": {}})
+
+        l = []
+        for doc in result:
+            l.append(doc)
+        return l
+    else:
+        return "nono"

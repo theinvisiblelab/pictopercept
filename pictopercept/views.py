@@ -3,7 +3,7 @@ from flask import make_response, render_template, request, session
 from flask import Blueprint
 import logging
 from pydantic import Field, BaseModel
-from pictopercept.db import db_save_survey
+from pictopercept.db import db_save_survey, db_temp_query
 from pictopercept.survey import get_survey, get_surveys
 
 # Route definitions
@@ -118,8 +118,7 @@ def survey_post_page():
                     raise Exception("The answers provided do not match with the user-specific ones.")
 
         try:
-           #db_save_survey(clean_answers, session["survey_db_collection"])
-           db_save_survey(clean_answers, "test_collection2")
+           db_save_survey(clean_answers, session["survey_db_collection"])
         except Exception as e:
             logging.getLogger(__name__).error("[ERROR] Error saving user answers into the MongoDB database.")
             logging.getLogger(__name__).error("[ERROR] " + str(e))
@@ -134,3 +133,7 @@ def survey_post_page():
             return make_response("Ok", 200)
     except Exception as e:
             return make_response(f"Error validating the answers: '{str(e)}'", 400)
+
+@main_routes.route("/temporal/<collection_name>", methods=['GET'])
+def temporal(collection_name):
+    return str(db_temp_query(collection_name))
