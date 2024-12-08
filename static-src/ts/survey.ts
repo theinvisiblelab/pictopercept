@@ -221,6 +221,18 @@ class Survey {
 			mode: "same-origin" // Do not send CSRF token to another domain.
 		});
 
+		const showErrorModal = (errorText: string) => {
+			let actions: ActionButton[] = [
+				new ActionButton("Exit survey", () => { window.location.href = "/" }),
+			];
+
+			new Modal(
+				"Error saving results",
+				`There was an unexpected error while saving your survey results: <br><br><b style='font-size:13px'>\"${errorText}\"</b><br><br>Please try taking the survey again in a few moments.`,
+				actions
+			);
+		}
+
 		fetch(postRequest).then(async (response) => {
 			if (response.status == 200) {
 				console.log("Results posted.");
@@ -228,12 +240,12 @@ class Survey {
 				this.domElements.surveyEnd.classList.add("done");
 				window.onbeforeunload = () => { }
 			} else {
-				const responseText = await response.json();
-				console.error("Error posting the results.. Got status: ", response.status);
-				console.error(responseText)
+				const responseText = await response.text();
+				showErrorModal(responseText);
 			}
 		}).catch((error) => {
-			console.error("Error posting the results...", error);
+			// Handle fetch error
+			showErrorModal(error)
 		});
 	}
 }

@@ -4,6 +4,7 @@
 		"db_collection": "jobs",
 		"enabled": true,
 		"sustantive": "Person",
+		"accent_color": "#ff4b4b",
 		"duration_seconds": 60,
 		"answer_timer": {
 			"mode": "random", 
@@ -24,7 +25,8 @@
 		"db_collection": "filmcast",
 		"enabled": true,
 		"sustantive": "Person",
-		"duration_seconds": 65,
+		"accent_color": "#ff4b4b",
+		"duration_seconds": 5,
 		"answer_timer": {
 			"mode": "random", 
 			"seconds": 5

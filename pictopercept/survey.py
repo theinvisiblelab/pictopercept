@@ -28,6 +28,8 @@ class Survey(BaseModel):
     sustantive: str = Field()
     big_description: str = Field()
 
+    accent_color: str = Field(default="#ff4b4b")
+
     duration_seconds: int | None = Field(default=None)
     answer_timer: AnswerTimer | None = Field(default=None)
 
@@ -83,6 +85,10 @@ def load_surveys():
         logging.getLogger(__name__).warning("[WARNING] There were 0 surveys loaded.")
 
     loaded_surveys = surveys
+
+def get_surveys() -> dict[str, Survey]:
+    global loaded_surveys
+    return loaded_surveys
 
 # Returns the survey by identifier, or None if not found
 # Assumes loaded_surveys is not None, as if the loading

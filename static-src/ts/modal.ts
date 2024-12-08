@@ -34,7 +34,7 @@ class Modal {
 
 		const bodyElement = document.createElement("div");
 		bodyElement.classList.add("body");
-		bodyElement.innerText = this.message;
+		bodyElement.innerHTML = this.message;
 
 		const buttonsElement = document.createElement("div");
 		buttonsElement.classList.add("buttons");

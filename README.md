@@ -63,4 +63,6 @@ Make sure you are able to reproduce the [Developing](#developing). Then, once de
 ## Dockerfile/Deploying
 TBD
 
-You need to pass the environment variable `MONGODB_URI` when running the image.
+You need to pass the environment variable `MONGODB_URI` when running the image. It should be:
+- When developing: A URL to a MongoDB Atlas when developing (or your local one).
+- When deployed: The local URL of the compose service (probably, `mongo:27017`).

@@ -9,7 +9,7 @@
 	<link rel="icon" href="/static/images/favicon.png">
 </head>
 
-<body>
+<body style="{{accent_color}}">
 	{% include 'header.html' %}
 	<main class="page-container small">
 		<div class="double">
@@ -20,7 +20,7 @@
 				{{ survey_description|safe }}
 			</div>
 		</div>
-		<a class="button-link" href="/survey">Let us begin!</a>
+		<a class="button-link" href="/survey/{{ survey_id }}/take">Let us begin!</a>
 	</main>
 </body>
 <script src="/static/js/index.js"></script>

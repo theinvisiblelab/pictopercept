@@ -1,4 +1,4 @@
-$accent: #ff4b4b;
+$accent: var(--accent_color, #ff4b4b);
 $background: #fff;
 
 body {

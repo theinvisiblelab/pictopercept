@@ -9,12 +9,12 @@
 	<link rel="icon" href="/static/images/favicon.png">
 </head>
 
-<body>
+<body style="{{accent_color}}">
 	{% include 'header.html' %}
 	<form>
 		<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
 		<div class="question" id="question">
-			Who of these is <b>...</b>?
+			<span style="opacity: .4">Loading...</span>
 		</div>
 		<div class="options loading" id="options">
 			<div class="option" id="option0">
