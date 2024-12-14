@@ -19,7 +19,7 @@ app.config["MONGO_URI"] = environ.get("MONGODB_URI")
 # Should be long and random.
 # It should be set as ENV variable once, so all
 # gunicorn threads/workers (if using more than one) use the same.
-app.config["SECRET_KEY"] = environ.get("SECRET_KEY")
+app.config["SECRET_KEY"] = environ.get("FLASK_SECRET_KEY")
 
 with app.app_context():
     logging.getLogger(__name__).warning("[INFO] Testing surveys...")

@@ -1,0 +1,9 @@
+- name: set environment variables for pictopercept
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Set FLASK_SECRET_KEY environment variable
+      ansible.builtin.shell: echo 'export FLASK_SECRET_KEY="{{ FLASK_SECRET_KEY }}"' >> /etc/environment
+
+    - name: Set MONGODB_URI environment variable
+      ansible.builtin.shell: echo 'export MONGODB_URI="{{ MONGODB_URI }}"' >> /etc/environment
