@@ -15,8 +15,6 @@ RUN npm run build
 # Final
 FROM --platform=$BUILDPLATFORM python:3.11-alpine AS builder
 
-WORKDIR /app
-
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
@@ -28,7 +26,7 @@ RUN pip install --upgrade pip && \
 COPY ./pictopercept ./pictopercept
 COPY ./wsgi.py .
 
-COPY --from=build /app/pictopercept/static /app/pictopercept/static
+COPY --from=build /app/pictopercept/static ./pictopercept/static
 
 CMD ["gunicorn", "wsgi:app"]
 
