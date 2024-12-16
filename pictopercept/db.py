@@ -27,7 +27,7 @@ def db_save_survey(survey_content, table_name):
 def db_temp_query(table_name):
     global client
     if client is not None:
-        result = client["main_db"][table_name].find({"questionVariables": {}})
+        result = client["main_db"][table_name].find()
 
         l = []
         for doc in result:
