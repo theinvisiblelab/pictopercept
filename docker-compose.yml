@@ -36,3 +36,8 @@ services:
 
 volumes:
   mongo_vol:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/data/db'
