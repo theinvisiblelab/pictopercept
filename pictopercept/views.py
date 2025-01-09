@@ -1,9 +1,12 @@
+import http
+import json
+import os
 from typing import Dict
 from flask import make_response, render_template, request, session
 from flask import Blueprint
 import logging
 from pydantic import Field, BaseModel
-from pictopercept.db import db_save_survey, db_temp_query
+from pictopercept.db import db_query_all, db_save_survey
 from pictopercept.survey import get_survey, get_surveys
 
 # Route definitions
@@ -11,7 +14,7 @@ main_routes = Blueprint('main', __name__)
 
 @main_routes.route("/", methods=['GET'])
 def index():
-    content = "<h3>Available surveys</h3><ul>"
+    content = "<h3>This is a temporal index. Select one survey:</h3><ul>"
     for key in get_surveys().keys():
         content += f"<li>Survey of {key}, <a href='/survey/{key}'>here</a></li>"
     content += "</ul>"
@@ -134,6 +137,31 @@ def survey_post_page():
     except Exception as e:
             return make_response(f"Error validating the answers: '{str(e)}'", 400)
 
-@main_routes.route("/temporal/<collection_name>", methods=['GET'])
-def temporal(collection_name):
-    return str(db_temp_query(collection_name))
+@main_routes.route("/fetch", methods=['POST'])
+def fetch_data():
+    if not "FETCH_PASSWORD" in os.environ:
+        return make_response("Fetch password is not set.", 500)
+
+    if not request.is_json:
+        return make_response("Invalid content type.", 400)
+
+    try:
+        arguments = request.get_json()
+    except:
+        return make_response("Could not decode the body JSON.", 400)
+
+    if "pass" not in arguments or "survey_name" not in arguments:
+        return make_response("The JSON is missing fields.", 400)
+
+    if arguments["pass"] != os.environ["FETCH_PASSWORD"]:
+        return make_response("Forbidden.", 403)
+
+    survey_name = arguments["survey_name"]
+    if survey_name not in get_surveys():
+        return make_response("Survey not found.", 404)
+
+    data = db_query_all(survey_name)
+
+    response = make_response({"data": data}, 200)
+    response.headers["Content-Type"] = "application/json"
+    return response

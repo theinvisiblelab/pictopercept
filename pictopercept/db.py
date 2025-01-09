@@ -24,14 +24,16 @@ def db_save_survey(survey_content, table_name):
     global client
     client["main_db"][table_name].insert_many(survey_content)
 
-def db_temp_query(table_name):
+def db_query_all(table_name):
     global client
     if client is not None:
         result = client["main_db"][table_name].find()
 
         l = []
         for doc in result:
+            doc.pop("_id")
             l.append(doc)
         return l
     else:
-        return "nono"
+        print("DB Client is None.")
+        return []

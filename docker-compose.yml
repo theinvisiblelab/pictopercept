@@ -21,9 +21,8 @@ services:
     environment:
       - GUNICORN_CMD_ARGS=--bind=0.0.0.0:9091
       - MONGODB_URI=${MONGODB_URI}
-      # TODO: Generate the secret key when building? As we don't care about its content
-      # as long as the key is always the same for the runtime.
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - FETCH_PASSWORD=${FETCH_PASSWORD}
     volumes:
       - ./:/app
     depends_on:

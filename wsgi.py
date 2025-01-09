@@ -9,11 +9,19 @@ from pictopercept.survey import load_surveys
 logging.getLogger(__name__).warning("[INFO] Loading .ENV file...")
 load_dotenv()
 
+# Ensure all necessary environment variables are set
+def ensure_env(env_key):
+    if not env_key in environ:
+        logging.getLogger(__name__).critical(f"[ERROR] {env_key} is not set. Exiting...")
+        exit(1)
+
+ensure_env("MONGODB_URI")
+ensure_env("FLASK_SECRET_KEY")
+ensure_env("FETCH_PASSWORD")
+
+# Create the Flask app itself
 logging.getLogger(__name__).warning("[INFO] Creating the Flask App..")
 app = create_app()
-
-# The full connection URL to the MongoDB database.
-app.config["MONGO_URI"] = environ.get("MONGODB_URI")
 
 # Used by session and CSRF token.
 # Should be long and random.
@@ -25,7 +33,7 @@ with app.app_context():
     logging.getLogger(__name__).warning("[INFO] Testing surveys...")
     load_surveys() # Ensure all surveys are valid before starting the server
     logging.getLogger(__name__).warning("[INFO] Testing MongoDB connection...")
-    db_init() # Ensure initial MONGO_URI/Credentials are OK
+    db_init() # Ensure initial MONGODB_URI/Credentials are OK
 
 if __name__ == "__main__":
     app.run()

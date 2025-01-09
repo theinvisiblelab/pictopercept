@@ -7,3 +7,6 @@
 
     - name: Set MONGODB_URI environment variable
       ansible.builtin.shell: echo 'export MONGODB_URI="{{ MONGODB_URI }}"' >> /etc/environment
+
+    - name: Set FETCH_PASSWORD environment variable
+      ansible.builtin.shell: echo 'export FETCH_PASSWORD="{{ FETCH_PASSWORD }}"' >> /etc/environment

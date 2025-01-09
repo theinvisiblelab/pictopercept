@@ -5,3 +5,4 @@ node_modules/
 .env
 .venv/
 .DS_Store
+fetch_data.py
