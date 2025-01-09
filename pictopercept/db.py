@@ -35,5 +35,5 @@ def db_query_all(table_name):
             l.append(doc)
         return l
     else:
-        print("DB Client is None.")
+        logging.getLogger(__name__).error("[ERROR] DB Client is None.")
         return []
