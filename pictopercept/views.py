@@ -1,7 +1,8 @@
 import http
 import json
 import os
-from typing import Dict
+from typing import Dict, List
+import uuid
 from flask import make_response, render_template, request, session
 from flask import Blueprint
 import logging
@@ -63,22 +64,33 @@ def survey(id):
         r.status_code = 404
         return r
 
-class Answer(BaseModel):
-    index: int = Field()
+class Image(BaseModel):
     image: str = Field()
     chosen: bool = Field()
-    userId: str = Field() # maybe remove this
+
+class Answer(BaseModel):
+    index: int = Field()
+    variables: Dict[str, str] = Field()
+    images: List[Image] = Field(min_length=2,max_length=2)
     timeBarEnabled: bool = Field()
-    questionVariables: Dict[str, str] = Field()
+    userId: str = Field(default="null_id")
+
+    # image: str = Field()
+    # chosen: bool = Field()
+    # userId: str = Field() # maybe remove this
 
     def to_dictionary(self):
         return {
             "index": self.index,
-            "image": self.image,
-            "chosen": self.chosen,
-            "userId": self.userId,
+            "variables": self.variables,
+            "images": self.images,
             "timeBarEnabled": self.timeBarEnabled,
-            "questionVariables": self.questionVariables,
+            "userId": self.userId,
+
+            # "image": self.image,
+            # "chosen": self.chosen,
+            # "userId": self.userId,
+            # "questionVariables": self.questionVariables,
         }
 
 @main_routes.route("/survey/end", methods=['POST'])
@@ -92,32 +104,34 @@ def survey_post_page():
             # Custom error message when invalid json
             raise Exception("The request does not have a proper body.")
 
-
-        current_answer_index = 0
+        current_image_index = 0
+        user_id = str(uuid.uuid4())
 
         # Note: While it is rare that anyone would try to "fake spam" survey
         # data, we check each answer structure and types, to ensure they
         # are actually the correct ones.
         clean_answers = []
         for answer in answers:
-            for i in range(0, 2):
-                try:
-                    clean_answer = Answer(**answer[i])
-                except Exception:
-                    raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
+            try:
+                clean_answer = Answer(**answer)
+            except Exception:
+                raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
 
+            for i in range(0, 2):
                 # Ensure the image is the set of the user
-                valid = session["possible_answers"][current_answer_index] == clean_answer.image
+                valid = session["possible_answers"][current_image_index] == clean_answer.images[i].image
 
                 # Ensure the time bar enabled is also correct
                 valid = valid and session["time_bar_enabled"] == clean_answer.timeBarEnabled
 
                 if valid:
-                    # Append the answer in Dict format (which is needed for MongoDB or any document-DB)
-                    clean_answers.append(clean_answer.model_dump())
-                    current_answer_index += 1
+                    current_image_index += 1
                 else:
                     raise Exception("The answers provided do not match with the user-specific ones.")
+
+            # If both are valid:
+            clean_answer.userId = user_id
+            clean_answers.append(clean_answer.model_dump())
 
         try:
            db_save_survey(clean_answers, session["survey_db_collection"])
@@ -159,7 +173,7 @@ def fetch_data():
     if survey_name not in get_surveys():
         return make_response("Survey not found.", 404)
 
-    data = db_query_all(survey_name)
+    data = json.dumps(db_query_all(survey_name))
 
     response = make_response({"data": data}, 200)
     response.headers["Content-Type"] = "application/json"

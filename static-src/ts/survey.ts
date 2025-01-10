@@ -7,13 +7,16 @@ declare var datasetUrl: string;
 declare var answerDuration: number;
 declare var surveyDuration: number;
 
-interface Answer {
-	index: number;
+interface AnswerImage {
 	image: string;
 	chosen: boolean;
-	userId: string;
+}
+
+interface Answer {
+	index: number;
+	variables: { [key: string]: string };
+	images: [AnswerImage, AnswerImage];
 	timeBarEnabled: boolean;
-	questionVariables: { [key: string]: string }
 };
 
 interface SurveyDomElements {
@@ -46,7 +49,8 @@ class Survey {
 	private currentQuestion: GeneratedQuestion | null = null;
 
 	private answerIndex: number = -2;
-	private readonly answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
+	// private readonly answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
+	private readonly answers: Array<Answer> = Array<Answer>();
 
 	constructor() {
 		this.initializeListeners();
@@ -108,24 +112,21 @@ class Survey {
 
 		// Add current answer
 		// TODO: Revise this, as we might be able drop most of the information
-		this.answers.push([
-			{
-				index: this.answerIndex,
-				image: images[this.answerIndex],
-				chosen: option === 0,
-				userId: "todo",
-				timeBarEnabled: timeBarEnabled,
-				questionVariables: this.currentQuestion!.variables
-			},
-			{
-				index: this.answerIndex + 1,
-				image: images[this.answerIndex + 1],
-				chosen: option !== 0,
-				userId: "todo",
-				timeBarEnabled: timeBarEnabled,
-				questionVariables: this.currentQuestion!.variables
-			}
-		]);
+		this.answers.push({
+			index: this.answerIndex / 2,
+			variables: this.currentQuestion!.variables,
+			timeBarEnabled: timeBarEnabled,
+			images: [
+				{
+					image: images[this.answerIndex],
+					chosen: option === 0,
+				},
+				{
+					image: images[this.answerIndex + 1],
+					chosen: option == 1
+				}
+			]
+		})
 
 		if (this.timeBar) {
 			this.timeBar.reset();
@@ -235,7 +236,6 @@ class Survey {
 
 		fetch(postRequest).then(async (response) => {
 			if (response.status == 200) {
-				console.log("Results posted.");
 				this.domElements.surveyEnd.classList.remove("loading");
 				this.domElements.surveyEnd.classList.add("done");
 				window.onbeforeunload = () => { }
