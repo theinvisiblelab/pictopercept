@@ -36,14 +36,24 @@ form {
     display: flex;
     position: relative;
     justify-content: space-between;
-    gap: 40px;
+    gap: 20px;
 
     &>.option {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      transition: all .1s ease-in-out;
 
-      &>button {
+      &:hover {
+        cursor: pointer;
+        background-color: #f2f2f2;
+
+        transform: rotate(1deg) scale(1.03)
+      }
+
+      /*&>button {
         padding: 10px 0px;
         color: #fff;
         border: none;
@@ -56,11 +66,11 @@ form {
           cursor: pointer;
           opacity: .8;
         }
-      }
+      }*/
 
       &>img {
-        width: 350px;
-        height: 350px;
+        width: 330px;
+        height: 330px;
         background: #000;
 
         object-fit: cover;
@@ -238,41 +248,15 @@ form {
     .options {
       .option {
         &>img {
-          width: 35dvw;
-          height: 35dvw;
+          width: 36dvw;
+          height: 36dvw;
         }
       }
     }
   }
 }
 
-/*@media (max-width: 720px) {
-  form {
-    .options {
-      .option {
-        &>img {
-          width: 250px;
-          height: 250px;
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 620px) {
-  form {
-    .options {
-      .option {
-        &>img {
-          width: 200px;
-          height: 200px;
-        }
-      }
-    }
-  }
-}*/
-
-@media (max-width: 540px) {
+@media (max-width: 575px) {
   header {
     position: relative;
   }

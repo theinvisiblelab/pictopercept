@@ -25,7 +25,6 @@ class Survey(BaseModel):
     db_collection: str = Field()
     enabled: bool  = Field()
 
-    sustantive: str = Field()
     big_description: str = Field()
 
     accent_color: str = Field(default="#ff4b4b")
@@ -71,7 +70,8 @@ def load_surveys():
             for survey_data in survey_datas:
                 try:
                     survey = Survey(**survey_data)
-                    surveys[survey.identifier] = survey
+                    if survey.enabled:
+                        surveys[survey.identifier] = survey
                 except Exception as e:
                     logging.getLogger(__name__).critical(f'[ERROR] The survey with index {survey_idx} has an error. Error: {e}')
                     exit(errno.EINTR)

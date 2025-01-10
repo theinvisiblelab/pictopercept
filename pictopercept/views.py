@@ -56,7 +56,6 @@ def survey(id):
             "answer_duration": time_bar_duration,
             "question": survey.question.model_dump(),
             "survey_duration": survey.duration_seconds if survey.duration_seconds is not None else -1,
-            "sustantive": survey.sustantive,
             "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
         })
     else:

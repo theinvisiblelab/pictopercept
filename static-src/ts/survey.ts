@@ -131,7 +131,7 @@ class Survey {
 			this.timeBar.reset();
 		}
 
-		this.shouldTheSurveyEnd() ? this.finishSurvey() : this.advanceSurvey();
+		this.shouldTheSurveyEnd() ? this.endSurvey() : this.advanceSurvey();
 	}
 
 	advanceSurvey() {
@@ -178,7 +178,7 @@ class Survey {
 
 				let actions: ActionButton[] = [
 					new ActionButton("Exit survey", () => { window.location.href = "/" }),
-					new ActionButton("Submit", () => { this.finishSurvey() }),
+					new ActionButton("Submit", () => { this.endSurvey() }),
 				];
 
 				new Modal(
@@ -190,8 +190,7 @@ class Survey {
 	}
 
 	// Sends all the survey answer data to the server.
-	// TODO: Not yet completed.
-	finishSurvey() {
+	endSurvey() {
 		// Remove error modal if any
 		document.querySelector(".modal-outer")?.remove();
 
@@ -201,6 +200,7 @@ class Survey {
 		this.domElements.options.remove()
 
 		this.domElements.surveyEnd.classList.add("visible");
+		this.domElements.surveyEnd.style.display = "";
 		this.domElements.surveyEnd.classList.add("loading");
 
 		if (this.timeBar) {

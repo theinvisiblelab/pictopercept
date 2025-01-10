@@ -3,7 +3,6 @@
 		"identifier": "jobs",
 		"db_collection": "jobs",
 		"enabled": true,
-		"sustantive": "Person",
 		"accent_color": "#ff4b4b",
 		"duration_seconds": 60,
 		"answer_timer": {
@@ -23,8 +22,7 @@
 	{
 		"identifier": "filmcast",
 		"db_collection": "filmcast",
-		"enabled": true,
-		"sustantive": "Person",
+		"enabled": false,
 		"accent_color": "#ff4b4b",
 		"duration_seconds": 60,
 		"answer_timer": {
