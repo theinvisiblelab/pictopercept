@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Survey - Pictopercept</title>
 		<link rel="stylesheet" href="/static/css/regular-questions.css">
 		<link rel="icon" href="/static/images/favicon.png">
@@ -19,72 +19,103 @@
 					<h3 class="title">{{ loop.index }}. {{ question.title }}</h3>
 					<div class="content">
 						{% if question.question_type == "SingleChoice" %}
-							{% for option in question.options %}
-								{% set option_index = loop.index0 %}
-									<input type="radio" name="question-{{ question_index }}" id="question-{{ question_index }}-{{ option_index }}">
-									<label for="question-{{ question_index }}-{{ option_index }}">{{ option }}</label><br/>
-							{% endfor %}
-							{% if question.other_enabled %}
-								<input type="checkbox" id="question-{{ question_index }}-{{ option_index }}">
-								<label for="question-{{ question_index }}-{{ option_index }}">Other (please specify)</label><br/>
-								<input type="text" placeholder="Short answer goes here.">
-							{% endif %}
-						{% elif question.question_type == "MultipleChoice" %}
-							{% for option in question.options %}
-								{% set option_index = loop.index0 %}
-								<input type="checkbox" id="question-{{ question_index }}-{{ option_index }}">
-								<label for="question-{{ question_index }}-{{ option_index }}">{{ option }}</label><br/>
-							{% endfor %}
-							{% if question.other_enabled %}
-								<input type="checkbox" id="question-{{ question_index }}-{{ option_index }}">
-								<label for="question-{{ question_index }}-{{ option_index }}">Other (please specify)</label><br/>
-								<input type="text" placeholder="Short answer goes here.">
-							{% endif %}
-						{% elif question.question_type == "Matrix" %}
-							<table>
-								<tr>
-									<th></th>
-									<th>1</th>
-									<th>2</th>
-									<th>3</th>
-									<th>4</th>
-									<th>5</th>
-								</tr>
+							<ul>
 								{% for option in question.options %}
 									{% set option_index = loop.index0 %}
-									<tr>
-										<td>{{ option }}</td>
-										{% for i in range(5) %}
-											<td><input type="radio" name="question-{{ question_index }}-{{ option_index }}"></td>
-										{% endfor %}
-									</tr>
+									<li>
+										<input type="radio" id="question-{{ question_index }}-{{ option_index }}"
+											name="question-{{ question_index }}">
+										<label for="question-{{ question_index }}-{{ option_index }}">{{ option }}</label>
+									</li>
 								{% endfor %}
+								{% if question.other_enabled %}
+									<li>
+										<input type="radio" id="question-{{ question_index }}-other"
+											name="question-{{ question_index }}">
+										<label for="question-{{ question_index }}-other">Other (please specify)</label><br/>
+										<input style="margin-left: 20px;" type="text" placeholder="Short answer goes here.">
+									</li>
+								{% endif %}
+							</ul>
+						{% elif question.question_type == "MultipleChoice" %}
+							<ul>
+								{% for option in question.options %}
+									{% set option_index = loop.index0 %}
+									<li>
+										<input type="checkbox" id="question-{{ question_index }}-{{ option_index }}">
+										<label for="question-{{ question_index }}-{{ option_index }}">{{ option }}</label>
+									</li>
+								{% endfor %}
+								{% if question.other_enabled %}
+									<li>
+										<input type="checkbox" id="question-{{ question_index }}-other">
+										<label for="question-{{ question_index }}-other">Other (please specify)</label><br/>
+										<input style="margin-left: 20px;" type="text" placeholder="Short answer goes here.">
+									</li>
+								{% endif %}
+							</ul>
+						{% elif question.question_type == "Matrix" %}
+							<table class="matrix">
+								<thead>
+										<tr>
+											<th></th>
+											<th>1</th>
+											<th>2</th>
+											<th>3</th>
+											<th>4</th>
+											<th>5</th>
+										</tr>
+								</thead>
+								<tbody>
+									{% for option in question.options %}
+										{% set option_index = loop.index0 %}
+										<tr>
+											<td>{{ option }}</td>
+											{% for i in range(5) %}
+												<td><input type="radio" name="question-{{ question_index }}-{{ option_index }}"></td>
+											{% endfor %}
+										</tr>
+									{% endfor %}
+								</tbody>
 							</table>
 						{% elif question.question_type == "AgreementScale" %}
-							<table>
-								<tr>
-									<td>
-										<label for="question-{{ question_index }}-0">Strongly disagree</label>
-										<input type="radio" id="question-{{ question_index }}-0" name="question-{{ question_index }}">
-									</td>
-									<td>
-										<label for="question-{{ question_index }}-1">Disagree</label>
-										<input type="radio" id="question-{{ question_index }}-1" name="question-{{ question_index }}">
-									</td>
-									<td>
-										<label for="question-{{ question_index }}-2">Neither agree nor disagree</label>
-										<input type="radio" id="question-{{ question_index }}-2" name="question-{{ question_index }}">
-									</td>
-									<td>
-										<label for="question-{{ question_index }}-3">Agree</label>
-										<input type="radio" id="question-{{ question_index }}-3" name="question-{{ question_index }}">
-									</td>
-									<td>
-										<label for="question-{{ question_index }}-4">Strongly agree</label>
-										<input type="radio" id="question-{{ question_index }}-4" name="question-{{ question_index }}">
-									</td>
-								</tr>
-							</table>
+							<div class="agreement-question">
+								<div>
+									<input type="radio" id="question-{{ question_index }}-0" name="question-{{ question_index }}">
+									<label for="question-{{ question_index }}-0" class="option">
+										<div>🙁</div>
+										<div>Strongly<br/>disagree</div>
+									</label>
+								</div>
+								<div>
+									<input type="radio" id="question-{{ question_index }}-1" name="question-{{ question_index }}">
+									<label for="question-{{ question_index }}-1" class="option">
+										<div>😕</div>
+										<div>Disagree</div>
+									</label>
+								</div>
+								<div>
+									<input type="radio" id="question-{{ question_index }}-2" name="question-{{ question_index }}">
+									<label for="question-{{ question_index }}-2" class="option">
+										<div>😐</div>
+										<div>Neutral</div>
+									</label>
+								</div>
+								<div>
+									<input type="radio" id="question-{{ question_index }}-3" name="question-{{ question_index }}">
+									<label for="question-{{ question_index }}-3" class="option">
+										<div>🙂</div>
+										<div>Agree</div>
+									</label>
+								</div>
+								<div>
+									<input type="radio" id="question-{{ question_index }}-4" name="question-{{ question_index }}">
+									<label for="question-{{ question_index }}-4" class="option">
+										<div>😀</div>
+										<div>Strongly<br/>agree</div>
+									</label>
+								</div>
+							</div>
 						{% elif question.question_type == "OpenShort" %}
 							<input placeholder="Short anwser...">
 						{% endif %}
