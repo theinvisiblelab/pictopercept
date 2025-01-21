@@ -6,13 +6,31 @@ import pandas as pd
 import logging
 import json
 
-class QuestionSurvey(BaseModel):
-    pass
+class Question(BaseModel):
+    question_type: str = Field()
+
+    title: str = Field(default="Question title")
+    other_enabled: bool = Field(default=False)
+    options: List[str] = Field(default=[])
+
+    # class MultipleChoice(BaseModel):
+    #     title: str = Field()
+    #     other_enabled: bool = Field()
+    #     options: List[str] = Field()
+
+    # class SingleChoice(BaseModel):
+    #     title: str = Field()
+    #     other_enabled: bool = Field()
+    #     options: List[str] = Field()
+
+    # class Matrix(BaseModel):
+    #     title: str = Field()
+    #     options: List[str] = Field()
+
+    # class AgreementScale(BaseModel):
+    #     title: str = Field()
 
 class ImageSurvey(BaseModel):
-    pass
-
-class Survey(BaseModel):
     class AnswerTimer(BaseModel):
         class AnswerTimerModeEnum(str, Enum):
             on = 'on'
@@ -25,14 +43,6 @@ class Survey(BaseModel):
     class Question(BaseModel):
         format: str
         variables: Dict[str, List[str]]
-
-    identifier: str = Field()
-    db_collection: str = Field()
-    enabled: bool  = Field()
-
-    big_description: str = Field()
-
-    accent_color: str = Field(default="#ff4b4b")
 
     duration_seconds: int | None = Field(default=None)
     answer_timer: AnswerTimer | None = Field(default=None)
@@ -58,6 +68,20 @@ class Survey(BaseModel):
                 return bool(random.choice([True, False]))
 
         return False # If None or mode is "off"
+
+class Survey(BaseModel):
+    identifier: str = Field()
+    db_collection: str = Field()
+    enabled: bool  = Field()
+
+    big_description: str = Field()
+
+    accent_color: str = Field(default="#ff4b4b")
+
+    image_survey: ImageSurvey = Field()
+    regular_survey: List[Question] = Field()
+
+    pass
 
 
 loaded_surveys = None

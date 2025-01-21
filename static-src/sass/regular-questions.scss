@@ -4,41 +4,40 @@
 @import "modal.scss";
 
 header {
-  top: 0;
-  position: absolute;
+	top: 0;
+	position: absolute;
 }
-
-/*html,
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}*/
 
 table,
 th,
 td {
-  border: 1px solid black;
+	border: 1px solid black;
 }
 
 th {
-  min-width: 50px;
+	min-width: 50px;
 }
 
 form.regular-question-form {
-  margin: auto;
-  padding: 30px;
-  background-color: #fff;
-  border-radius: 5px;
+	margin: auto;
+	padding: 30px;
+	background-color: #fff;
+	border-radius: 5px;
 
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+	box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
 
-  &>.question {
-    font-size: 24px;
-    padding-bottom: 20px;
+input[type="checkbox"],
+input[type="radio"] {
+	margin: 0;
+	accent-color: red;
 
-    &>b {
-      text-transform: uppercase;
-    }
-  }
+	width: 20px;
+	height: 20px;
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover,
+label {
+	cursor: pointer;
 }

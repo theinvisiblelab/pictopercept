@@ -38,25 +38,25 @@ def survey_index(id):
 def survey(id):
     survey = get_survey(id)
     if survey is not None:
-        df = survey.load_datasets()
+        df = survey.image_survey.load_datasets()
 
         image_urls = df[:200]["file"].tolist()
-        time_bar_enabled = survey.use_timer_bar()
+        time_bar_enabled = survey.image_survey.use_timer_bar()
         time_bar_duration = -1
-        if survey.answer_timer is not None and time_bar_enabled:
-            time_bar_duration = survey.answer_timer.seconds
+        if survey.image_survey.answer_timer is not None and time_bar_enabled:
+            time_bar_duration = survey.image_survey.answer_timer.seconds
 
         session["survey_db_collection"] = survey.db_collection
         session["possible_answers"] = image_urls;
         session["time_bar_enabled"] = time_bar_enabled;
 
         return render_template("survey.html", **{
-            "dataset_url" : survey.image_server,
+            "dataset_url" : survey.image_survey.image_server,
             "image_urls":image_urls,
             "time_bar_enabled": time_bar_enabled,
             "answer_duration": time_bar_duration,
-            "question": survey.question.model_dump(),
-            "survey_duration": survey.duration_seconds if survey.duration_seconds is not None else -1,
+            "question": survey.image_survey.question.model_dump(),
+            "survey_duration": survey.image_survey.duration_seconds if survey.image_survey.duration_seconds is not None else -1,
             "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
         })
     else:
@@ -187,6 +187,13 @@ def questions_view():
 
 @main_routes.route("/questions_modular", methods=['GET'])
 def questions_view_modular():
+    survey_name = "jobs"
+    survey = get_survey(survey_name)
+    survey_questions = []
+    if survey is not None:
+        survey_questions = survey.regular_survey
+
     return render_template("questions_modular.html", ** {
-        "accent_color": f"--accent_color:#ff4b4b"
+        "accent_color": f"--accent_color:#ff4b4b",
+        "questions": survey_questions,
     })
