@@ -5,3 +5,4 @@ pandas==2.2.3
 pydantic==2.9.2
 pymongo==4.10.1
 python-dotenv==1.0.1
+mongomock==4.3.0

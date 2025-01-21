@@ -33,7 +33,7 @@ with app.app_context():
     logging.getLogger(__name__).warning("[INFO] Testing surveys...")
     load_surveys() # Ensure all surveys are valid before starting the server
     logging.getLogger(__name__).warning("[INFO] Testing MongoDB connection...")
-    db_init() # Ensure initial MONGODB_URI/Credentials are OK
+    db_init(app.debug) # Ensure initial MONGODB_URI/Credentials are OK
 
 if __name__ == "__main__":
     app.run()

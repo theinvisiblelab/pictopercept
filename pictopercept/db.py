@@ -2,12 +2,20 @@ from pymongo import MongoClient
 from os import environ
 import logging
 import errno
+import mongomock
 
 client = None
 
-def db_init():
+def db_init(debug_mode):
     global client
-    client = MongoClient(environ.get("MONGODB_URI"), maxPoolSize=200)
+
+    mongodb_uri = environ.get("MONGODB_URI", "mongodb://localhost:27017/")
+
+    if debug_mode:
+        logging.getLogger(__name__).warning("[INFO] MongoDB started in-memory.")
+        client = mongomock.MongoClient(mongodb_uri, maxPoolSize=200)
+    else:
+        client = MongoClient(mongodb_uri, maxPoolSize=200)
 
     try:
         result = client.admin.command("ping")
