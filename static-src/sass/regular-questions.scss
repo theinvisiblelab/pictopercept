@@ -1,0 +1,44 @@
+@import "fonts.scss";
+@import "common.scss";
+@import "header.scss";
+@import "modal.scss";
+
+header {
+  top: 0;
+  position: absolute;
+}
+
+/*html,
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}*/
+
+table,
+th,
+td {
+  border: 1px solid black;
+}
+
+th {
+  min-width: 50px;
+}
+
+form.regular-question-form {
+  margin: auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 5px;
+
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+
+  &>.question {
+    font-size: 24px;
+    padding-bottom: 20px;
+
+    &>b {
+      text-transform: uppercase;
+    }
+  }
+}

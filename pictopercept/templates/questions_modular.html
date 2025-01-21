@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Survey - Pictopercept</title>
+	<link rel="stylesheet" href="/static/css/regular-questions.css">
+	<link rel="icon" href="/static/images/favicon.png">
+</head>
+
+<body style="{{accent_color}}">
+	{% include 'header.html' %}
+		<form class="regular-question-form" autocomplete="off">
+			<!-- ### 1. CURRENT OCCUPATION AND FAMILIARITY -->
+			<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
+			<h2>Current Occupation and Familiarity</h2>
+			<div class="question-group">
+				<h3 class="title">1. Which of the following best describes your primary occupational status?</h3>
+				<div class="content">
+					<input type="checkbox" id="question-1-a"><label for="question-1-a"> Employed (full-time)</label><br/>
+					<input type="checkbox" id="question-1-b"><label for="question-1-b"> Employed (part-time)</label><br/>
+					<input type="checkbox" id="question-1-c"><label for="question-1-c"> Self-employed</label><br/>
+					<input type="checkbox" id="question-1-d"><label for="question-1-d"> Unemployed</label><br/>
+					<input type="checkbox" id="question-1-e"><label for="question-1-e"> Retired</label><br/>
+					<input type="checkbox" id="question-1-f"><label for="question-1-f"> Student</label><br/>
+					<input type="checkbox" id="question-1-g"><label for="question-1-g"> Other (please specify)</label><br/>
+					<input type="text" placeholder="Please specify" >
+				</div>
+			</div>
+			<div class="question-group">
+				<h3>2. How familiar are you with each of the following occupations based on personal experience or people you know? (1 = Not at all familiar; 5 = Extremely familiar)</h3>
+				<div class="content">
+					<table>
+							<tr>
+								<th></th>
+								<th>1</th>
+								<th>2</th>
+								<th>3</th>
+								<th>4</th>
+								<th>5</th>
+							</tr>
+							<tr>
+								<td>Teacher</td>
+								<td><input type="radio" name="question-2-teacher"></td>
+								<td><input type="radio" name="question-2-teacher"></td>
+								<td><input type="radio" name="question-2-teacher"></td>
+								<td><input type="radio" name="question-2-teacher"></td>
+								<td><input type="radio" name="question-2-teacher"></td>
+							</tr>
+							<tr>
+								<td>Doctor</td>
+								<td><input type="radio" name="question-2-doctor"></td>
+								<td><input type="radio" name="question-2-doctor"></td>
+								<td><input type="radio" name="question-2-doctor"></td>
+								<td><input type="radio" name="question-2-doctor"></td>
+								<td><input type="radio" name="question-2-doctor"></td>
+							</tr>
+							<tr>
+								<td>Plumber</td>
+								<td><input type="radio" name="question-2-plumber"></td>
+								<td><input type="radio" name="question-2-plumber"></td>
+								<td><input type="radio" name="question-2-plumber"></td>
+								<td><input type="radio" name="question-2-plumber"></td>
+								<td><input type="radio" name="question-2-plumber"></td>
+							</tr>
+					</table>
+				</div>
+			</div>
+
+
+			<!-- ### 2. MEDIA EXPOSURE AND PERCEPTIONS -->
+			<h2>Media Exposure and Perceptions</h2>
+			<div class="question-group">
+				<h3>3. How often do you consume TV shows, movies, social media, or news that depict various occupations (e.g., in dramas, documentaries, social media content)?</h3>
+				<div class="content">
+					<input type="checkbox" id="question-3-a"><label for="question-3-a">Never</label><br/>
+					<input type="checkbox" id="question-3-b"><label for="question-3-b">Rarely (less than once a week)</label><br/>
+					<input type="checkbox" id="question-3-c"><label for="question-3-c">Sometimes (1-3 times a week)</label><br/>
+					<input type="checkbox" id="question-3-d"><label for="question-3-d">Often (4-6 times a week)</label><br/>
+					<input type="checkbox" id="question-3-e"><label for="question-3-e">Very often (daily)</label><br/>
+				</div>
+			</div>
+
+
+			<div class="question-group">
+				<h3>4. Agreement Scale, e.g., Strongly Disagree to Strongly Agree</h3>
+				<div class="content">
+					<h4>Media portrayals generally provide realistic depictions of different occupations.</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-4-1-a">Strongly disagree</label>
+								<input type="radio" id="question-4-1-a" name="question-4-1">
+							</td>
+							<td>
+								<label for="question-4-1-b">Disagree</label>
+								<input type="radio" id="question-4-1-b" name="question-4-1">
+							</td>
+							<td>
+								<label for="question-4-1-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-4-1-c" name="question-4-1">
+							</td>
+							<td>
+								<label for="question-4-1-d">Agree</label>
+								<input type="radio" id="question-4-1-d" name="question-4-1">
+							</td>
+							<td>
+								<label for="question-4-1-e">Strongly agree</label>
+								<input type="radio" id="question-4-1-e" name="question-4-1">
+							</td>
+						</tr>
+					</table>
+					<h4>I notice stereotypes about certain jobs when I watch TV shows or movies.</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-4-2-a">Strongly disagree</label>
+								<input type="radio" id="question-4-2-a" name="question-4-2">
+							</td>
+							<td>
+								<label for="question-4-2-b">Disagree</label>
+								<input type="radio" id="question-4-2-b" name="question-4-2">
+							</td>
+							<td>
+								<label for="question-4-2-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-4-2-c" name="question-4-2">
+							</td>
+							<td>
+								<label for="question-4-2-d">Agree</label>
+								<input type="radio" id="question-4-2-d" name="question-4-2">
+							</td>
+							<td>
+								<label for="question-4-2-e">Strongly agree</label>
+								<input type="radio" id="question-4-2-e" name="question-4-2">
+							</td>
+						</tr>
+					</table>
+					<h4>It is easy to guess someone’s occupation just by looking at them.</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-4-3-a">Strongly disagree</label>
+								<input type="radio" id="question-4-3-a" name="question-4-3">
+							</td>
+							<td>
+								<label for="question-4-3-b">Disagree</label>
+								<input type="radio" id="question-4-3-b" name="question-4-3">
+							</td>
+							<td>
+								<label for="question-4-3-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-4-3-c" name="question-4-3">
+							</td>
+							<td>
+								<label for="question-4-3-d">Agree</label>
+								<input type="radio" id="question-4-3-d" name="question-4-3">
+							</td>
+							<td>
+								<label for="question-4-3-e">Strongly agree</label>
+								<input type="radio" id="question-4-3-e" name="question-4-3">
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<!-- ### 3. ATTITUDES TOWARD BIAS AND STEREOTYPES -->
+			<h2>Attitudes Toward Bias and Stereotypes</h2>
+			<div class="question-group">
+				<h3>5. Agreement Scale, e.g., Strongly Disagree to Strongly Agree</h3>
+				<div class="content">
+					<h4>I believe stereotypes about occupations exist for a reason (i.e., there is some truth to them).</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-5-1-a">Strongly disagree</label>
+								<input type="radio" id="question-5-1-a" name="question-5-1">
+							</td>
+							<td>
+								<label for="question-5-1-b">Disagree</label>
+								<input type="radio" id="question-5-1-b" name="question-5-1">
+							</td>
+							<td>
+								<label for="question-5-1-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-5-1-c" name="question-5-1">
+							</td>
+							<td>
+								<label for="question-5-1-d">Agree</label>
+								<input type="radio" id="question-5-1-d" name="question-5-1">
+							</td>
+							<td>
+								<label for="question-5-1-e">Strongly agree</label>
+								<input type="radio" id="question-5-1-e" name="question-5-1">
+							</td>
+						</tr>
+					</table>
+					<h4>Even if I notice stereotypes, I try not to let them influence my judgment.</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-5-2-a">Strongly disagree</label>
+								<input type="radio" id="question-5-2-a" name="question-5-2">
+							</td>
+							<td>
+								<label for="question-5-2-b">Disagree</label>
+								<input type="radio" id="question-5-2-b" name="question-5-2">
+							</td>
+							<td>
+								<label for="question-5-2-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-5-2-c" name="question-5-2">
+							</td>
+							<td>
+								<label for="question-5-2-d">Agree</label>
+								<input type="radio" id="question-5-2-d" name="question-5-2">
+							</td>
+							<td>
+								<label for="question-5-2-e">Strongly agree</label>
+								<input type="radio" id="question-5-2-e" name="question-5-2">
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="question-group">
+				<h3>6. Agreement Scale, e.g., Strongly Disagree to Strongly Agree</h3>
+				<div class="content">
+					<h4>When answering surveys, I try to provide responses that I believe are more socially acceptable, even if they don’t perfectly reflect my true feelings.</h4>
+					<table>
+						<tr>
+							<td>
+								<label for="question-6-1-a">Strongly disagree</label>
+								<input type="radio" id="question-6-1-a" name="question-6-1">
+							</td>
+							<td>
+								<label for="question-6-1-b">Disagree</label>
+								<input type="radio" id="question-6-1-b" name="question-6-1">
+							</td>
+							<td>
+								<label for="question-6-1-c">Neither agree nor disagree</label>
+								<input type="radio" id="question-6-1-c" name="question-6-1">
+							</td>
+							<td>
+								<label for="question-6-1-d">Agree</label>
+								<input type="radio" id="question-6-1-d" name="question-6-1">
+							</td>
+							<td>
+								<label for="question-6-1-e">Strongly agree</label>
+								<input type="radio" id="question-6-1-e" name="question-6-1">
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<!-- ### 3. WORKPLACE OR SOCIAL CONTEXT -->
+			<h2>Workplace or Social Context</h2>
+			<div class="question-group">
+				<h3>7. In my workplace or daily social environment, I frequently interact with people from diverse backgrounds (e.g., different races, genders, or cultures).</h3>
+				<div class="content">
+					<input type="checkbox" id="question-7-a"><label for="question-7-a">Different races</label><br/>
+					<input type="checkbox" id="question-7-b"><label for="question-7-b">Different genders</label><br/>
+					<input type="checkbox" id="question-7-b"><label for="question-7-c">Different cultures</label><br/>
+					<input type="checkbox" id="question-7-b"><label for="question-7-d">ETC (TODO)</label><br/>
+				</div>
+			</div>
+			<div class="question-group">
+				<h3>8. In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?</h3>
+				<div class="content">
+					<input placeholder="Short anwser...">
+				</div>
+			</div>
+			<button>Continue</button>
+		</form>
+
+</body>
+</html>

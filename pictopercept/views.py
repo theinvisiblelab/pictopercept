@@ -178,3 +178,15 @@ def fetch_data():
     response = make_response({"data": data}, 200)
     response.headers["Content-Type"] = "application/json"
     return response
+
+@main_routes.route("/questions", methods=['GET'])
+def questions_view():
+    return render_template("questions.html", ** {
+        "accent_color": f"--accent_color:#ff4b4b"
+    })
+
+@main_routes.route("/questions_modular", methods=['GET'])
+def questions_view_modular():
+    return render_template("questions_modular.html", ** {
+        "accent_color": f"--accent_color:#ff4b4b"
+    })

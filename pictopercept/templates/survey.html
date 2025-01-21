@@ -11,7 +11,7 @@
 
 <body style="{{accent_color}}">
 	{% include 'header.html' %}
-	<form>
+	<form class="image-form">
 		<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
 		<div class="question" id="question">
 			<span style="opacity: .4">Loading...</span>

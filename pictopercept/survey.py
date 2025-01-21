@@ -6,21 +6,26 @@ import pandas as pd
 import logging
 import json
 
-class AnswerTimerModeEnum(str, Enum):
-    on = 'on'
-    off = 'off'
-    random = 'random'
+class QuestionSurvey(BaseModel):
+    pass
 
-class AnswerTimer(BaseModel):
-    mode: AnswerTimerModeEnum = Field()
-    seconds: int = Field()
-
-class Question(BaseModel):
-    format: str
-    variables: Dict[str, List[str]]
-
+class ImageSurvey(BaseModel):
+    pass
 
 class Survey(BaseModel):
+    class AnswerTimer(BaseModel):
+        class AnswerTimerModeEnum(str, Enum):
+            on = 'on'
+            off = 'off'
+            random = 'random'
+
+        mode: AnswerTimerModeEnum = Field()
+        seconds: int = Field()
+    
+    class Question(BaseModel):
+        format: str
+        variables: Dict[str, List[str]]
+
     identifier: str = Field()
     db_collection: str = Field()
     enabled: bool  = Field()

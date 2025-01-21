@@ -15,7 +15,7 @@ body {
   align-items: center;
 }
 
-form {
+form.image-form {
   margin: auto;
   padding: 30px;
   background-color: #fff;
@@ -245,7 +245,7 @@ form {
 }
 
 @media (max-width: 850px) {
-  form {
+  form.image-form {
     .options {
       .option {
         &>img {
@@ -262,7 +262,7 @@ form {
     position: relative;
   }
 
-  form {
+  form.image-form {
     margin-top: 0;
     width: 95%;
     box-sizing: border-box;
