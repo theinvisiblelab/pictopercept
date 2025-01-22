@@ -13,10 +13,11 @@
 		{% include 'header.html' %}
 		<form class="regular-question-form" autocomplete="off">
 			<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
+			<h1>Regular questions</h1>
 			{% for question in questions %}
 				{% set question_index = loop.index0 %}
-				<div class="question-group">
-					<h3 class="title">{{ loop.index }}. {{ question.title }}</h3>
+					<div class="question-group" id="question-{{ question_index }}" question-type="{{ question.question_type }}">
+					<h2 class="title">{{ loop.index }}. {{ question.title }}</h2>
 					<div class="content">
 						{% if question.question_type == "SingleChoice" %}
 							<ul>
@@ -33,7 +34,7 @@
 										<input type="radio" id="question-{{ question_index }}-other"
 											name="question-{{ question_index }}">
 										<label for="question-{{ question_index }}-other">Other (please specify)</label><br/>
-										<input style="margin-left: 20px;" type="text" placeholder="Short answer goes here.">
+										<input style="margin-left: 20px; display: none;" type="text" placeholder="Short answer goes here.">
 									</li>
 								{% endif %}
 							</ul>
@@ -50,7 +51,7 @@
 									<li>
 										<input type="checkbox" id="question-{{ question_index }}-other">
 										<label for="question-{{ question_index }}-other">Other (please specify)</label><br/>
-										<input style="margin-left: 20px;" type="text" placeholder="Short answer goes here.">
+										<input style="margin-left: 20px; display: none;" type="text" placeholder="Short answer goes here.">
 									</li>
 								{% endif %}
 							</ul>
@@ -72,7 +73,7 @@
 										<tr>
 											<td>{{ option }}</td>
 											{% for i in range(5) %}
-												<td><input type="radio" name="question-{{ question_index }}-{{ option_index }}"></td>
+											<td><input type="radio" id="question-{{ question_index }}-{{ option_index }}-{{ loop.index0 }}" name="question-{{ question_index }}-{{ option_index }}"></td>
 											{% endfor %}
 										</tr>
 									{% endfor %}
@@ -117,13 +118,16 @@
 								</div>
 							</div>
 						{% elif question.question_type == "OpenShort" %}
-							<input placeholder="Short anwser...">
+							<!-- Allow optional free answers? -->
+							<input rquired type="text" placeholder="Short anwser...">
 						{% endif %}
 					</div>
 				</div>
 			{% endfor %}
+			<br/>
 			<button>Continue</button>
 		</form>
 
 	</body>
+	<script src="/static/js/regular-questions.js"></script>
 </html>

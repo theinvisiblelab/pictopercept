@@ -14,19 +14,63 @@ header {
 	position: absolute;
 }
 
-h3 {
-	margin-top: 20px;
+h1 {
+	font-size: 1.875rem;
+	line-height: 2.25rem;
+	margin: 0;
 	margin-bottom: 10px;
-	font-size: 1.3em;
+}
+
+h2 {
+	margin: 0;
+	margin-bottom: 5px;
+	margin-top: 10px;
+
+	color: #37404f;
+	font-weight: 600;
+	font-size: 1.25rem;
+	line-height: 1.75rem;
+
+}
+
+label {
+	font-size: 0.875rem;
+}
+
+.error {
+	color: white;
+	font-weight: bold;
+	background: $accent;
+	padding: 5px 10px;
+	border-radius: 5px;
+	box-sizing: border-box;
+	margin-bottom: 5px;
+}
+
+.error2 {
+	color: $accent;
+	font-weight: bold;
+	margin-bottom: 5px;
 }
 
 ul {
 	list-style: none;
 	padding-left: 10px;
+	margin: 0;
 
 	&>li {
-		margin: 5px 0;
+		margin: 0;
+		margin-bottom: 5px;
 	}
+}
+
+html,
+body {
+	height: unset !important;
+}
+
+body {
+	padding-bottom: 50px;
 }
 
 form.regular-question-form {
@@ -62,6 +106,8 @@ label {
 
 	&>div {
 		display: flex;
+		margin-top: 5px;
+		margin-bottom: 10px;
 
 		&>.option {
 			display: flex;
@@ -77,6 +123,10 @@ label {
 			transition: all .1s linear;
 
 			border: 2px solid transparent;
+
+			&:hover {
+				background-color: rgba(0, 0, 0, .1);
+			}
 		}
 
 		input[type="radio"] {
@@ -104,6 +154,7 @@ label {
 }
 
 .matrix {
+	margin-left: 10px;
 	border-collapse: collapse;
 
 	th,
@@ -112,5 +163,19 @@ label {
 		padding: 5px 0;
 		text-align: center;
 		border-bottom: 1.5px solid rgba(0, 0, 0, .1);
+	}
+}
+
+input[type="text"] {
+	outline: none;
+	padding: 10px 10px;
+	padding-left: 5px;
+	width: 50%;
+	border-radius: 5px;
+	border: 1px solid rgba(0, 0, 0, .5);
+
+	&:active,
+	&:focus {
+		border-color: rgba(0, 0, 0, 1);
 	}
 }
