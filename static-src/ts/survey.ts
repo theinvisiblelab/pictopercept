@@ -1,6 +1,7 @@
 // This variables are passed from the HTML <script> tag, as they
 // have to come from Flask
 declare var surveyQuestionRaw: any;
+declare var surveyPostUrl: string;
 declare var images: Array<string>;
 declare var timeBarEnabled: boolean;
 declare var datasetUrl: string;
@@ -211,7 +212,7 @@ class Survey {
 		}
 
 		const csrftoken = (document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement).value;
-		const postRequest = new Request("/survey/end", {
+		const postRequest = new Request(surveyPostUrl, {
 			method: "POST",
 			body: JSON.stringify(this.answers),
 
@@ -235,10 +236,11 @@ class Survey {
 		}
 
 		fetch(postRequest).then(async (response) => {
+			const text = await response.text()
 			if (response.status == 200) {
-				this.domElements.surveyEnd.classList.remove("loading");
-				this.domElements.surveyEnd.classList.add("done");
+				const nextStepUrl = JSON.parse(text)["next_step"]
 				window.onbeforeunload = () => { }
+				window.location.href = nextStepUrl
 			} else {
 				const responseText = await response.text();
 				showErrorModal(responseText);

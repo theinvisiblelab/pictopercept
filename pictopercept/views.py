@@ -1,14 +1,20 @@
-import http
 import json
 import os
-from typing import Dict, List
+from numpy import random
 import uuid
-from flask import make_response, render_template, request, session
-from flask import Blueprint
+from flask import Blueprint, abort, make_response, render_template, request, session 
 import logging
-from pydantic import Field, BaseModel
-from pictopercept.db import db_query_all, db_save_survey
-from pictopercept.survey import get_survey, get_surveys
+
+from db import db_query_all
+import survey_loader
+import regular_question_survey.views as regular_question_views
+import image_survey.views as image_views
+
+def get_survey_or_404(id):
+    survey = survey_loader.get_survey(id)
+    if survey is None or not survey.enabled:
+        abort(404, "The survey was not found, or it is not enabled.")
+    return survey
 
 # Route definitions
 main_routes = Blueprint('main', __name__)
@@ -16,7 +22,7 @@ main_routes = Blueprint('main', __name__)
 @main_routes.route("/", methods=['GET'])
 def index():
     content = "<h3>This is a temporal index. Select one survey:</h3><ul>"
-    for key in get_surveys().keys():
+    for key in survey_loader.get_surveys().keys():
         content += f"<li>Survey of {key}, <a href='/survey/{key}'>here</a></li>"
     content += "</ul>"
 
@@ -24,131 +30,84 @@ def index():
 
 @main_routes.route("/survey/<id>", methods=['GET'])
 def survey_index(id):
-    survey = get_survey(id)
-    if survey is not None and survey.enabled:
-        return render_template("index.html", ** {
-            "survey_description": survey.big_description,
-            "survey_id": id,
-            "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
-        })
+    survey = get_survey_or_404(id)
+
+    return render_template("index.html", ** {
+        "survey_description": survey.big_description,
+        "survey_id": id,
+        "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
+    })
+
+@main_routes.route("/survey/<id>/thanks", methods=['GET'])
+def survey_thanks(id):
+    _ = get_survey_or_404(id)
+    session.clear()
+    return make_response("<h1>Thanks</h1><p>Thanks for completing the survey. Your answers have been saved.</p>", 200)
+
+@main_routes.route("/survey/<id>/<step>", methods=['GET'])
+def survey_step_get(id, step):
+    survey = get_survey_or_404(id)
+
+    if step != "1" and step != "2":
+        abort(404)
+
+    if step == "1":
+        # Clear/reset the user's session
+        session.clear()
+        session["user_id"] = str(uuid.uuid4())
+        session["questions_first"] = bool(random.choice([True, False]))
+        session["step_1_completed"] = False
+
+    if step == "2":
+        # Ensure valid session
+        if session.get("user_id") is None:
+            logging.warning("[WARNING] User visited step two without a session.")
+            return make_response(f"It seems you don't have an active session. You can start the survey <a href=\"/survey/{id}/1\">here</a>.", 400)
+
+        # Ensure step 1 is completed
+        if not session["step_1_completed"]:
+            logging.warning("[WARNING] User visited step two without completing step 1.")
+            return make_response(f"It seems you haven't completed the survey's step one.. You can start again the survey <a href=\"/survey/{id}/1\">here</a>.", 400)
+
+    if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
+        return regular_question_views.get_handler(survey, step)
     else:
-        return make_response("There is no default survey set, the survey was not found, or it is not enabled.", 404)
+        return image_views.get_handler(survey, step)
 
-@main_routes.route("/survey/<id>/take", methods=['GET'])
-def survey(id):
-    survey = get_survey(id)
-    if survey is not None:
-        df = survey.image_survey.load_datasets()
+@main_routes.route("/survey/<id>/<step>", methods=['POST'])
+def survey_step_post(id, step):
+    survey = get_survey_or_404(id)
 
-        image_urls = df[:200]["file"].tolist()
-        time_bar_enabled = survey.image_survey.use_timer_bar()
-        time_bar_duration = -1
-        if survey.image_survey.answer_timer is not None and time_bar_enabled:
-            time_bar_duration = survey.image_survey.answer_timer.seconds
+    if step != "1" and step != "2":
+        return make_response("", 404)
+    
+    # Ensure valid session
+    if session.get("user_id") is None:
+        logging.getLogger(__name__).error("[ERROR] User tried posting data without a session.")
+        return make_response("Cannot post data without an active survey session.", 400)
 
-        session["survey_db_collection"] = survey.db_collection
-        session["possible_answers"] = image_urls;
-        session["time_bar_enabled"] = time_bar_enabled;
+    # Ensure step 1 is completed
+    if step == "2" and not session["step_1_completed"]:
+        logging.getLogger(__name__).error("[ERROR] User tried posting to step two without completing step one.")
+        return make_response("Cannot post data to step two without completing step one.", 400)
 
-        return render_template("survey.html", **{
-            "dataset_url" : survey.image_survey.image_server,
-            "image_urls":image_urls,
-            "time_bar_enabled": time_bar_enabled,
-            "answer_duration": time_bar_duration,
-            "question": survey.image_survey.question.model_dump(),
-            "survey_duration": survey.image_survey.duration_seconds if survey.image_survey.duration_seconds is not None else -1,
-            "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
-        })
+    if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
+        error_response = regular_question_views.post_handler(request, survey)
     else:
-        r = make_response("Survey not found.")
-        r.status_code = 404
-        return r
+        error_response = image_views.post_handler(request, survey)
 
-class Image(BaseModel):
-    image: str = Field()
-    chosen: bool = Field()
-
-class Answer(BaseModel):
-    index: int = Field()
-    variables: Dict[str, str] = Field()
-    images: List[Image] = Field(min_length=2,max_length=2)
-    timeBarEnabled: bool = Field()
-    userId: str = Field(default="null_id")
-
-    # image: str = Field()
-    # chosen: bool = Field()
-    # userId: str = Field() # maybe remove this
-
-    def to_dictionary(self):
-        return {
-            "index": self.index,
-            "variables": self.variables,
-            "images": self.images,
-            "timeBarEnabled": self.timeBarEnabled,
-            "userId": self.userId,
-
-            # "image": self.image,
-            # "chosen": self.chosen,
-            # "userId": self.userId,
-            # "questionVariables": self.questionVariables,
-        }
-
-@main_routes.route("/survey/end", methods=['POST'])
-def survey_post_page():
-    try:
-        # Each answer is a pair containing both
-        # options to choose from
-        try:
-            answers = request.get_json()
-        except:
-            # Custom error message when invalid json
-            raise Exception("The request does not have a proper body.")
-
-        current_image_index = 0
-        user_id = str(uuid.uuid4())
-
-        # Note: While it is rare that anyone would try to "fake spam" survey
-        # data, we check each answer structure and types, to ensure they
-        # are actually the correct ones.
-        clean_answers = []
-        for answer in answers:
-            try:
-                clean_answer = Answer(**answer)
-            except Exception:
-                raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
-
-            for i in range(0, 2):
-                # Ensure the image is the set of the user
-                valid = session["possible_answers"][current_image_index] == clean_answer.images[i].image
-
-                # Ensure the time bar enabled is also correct
-                valid = valid and session["time_bar_enabled"] == clean_answer.timeBarEnabled
-
-                if valid:
-                    current_image_index += 1
-                else:
-                    raise Exception("The answers provided do not match with the user-specific ones.")
-
-            # If both are valid:
-            clean_answer.userId = user_id
-            clean_answers.append(clean_answer.model_dump())
-
-        try:
-           db_save_survey(clean_answers, session["survey_db_collection"])
-        except Exception as e:
-            logging.getLogger(__name__).error("[ERROR] Error saving user answers into the MongoDB database.")
-            logging.getLogger(__name__).error("[ERROR] " + str(e))
-            return make_response(f"There was an error with the database while saving your answers.", 500)
+    if error_response is None:
+        if step == "1":
+            session["step_1_completed"] = True
+            return make_response(json.dumps({
+                "next_step": f"/survey/{id}/2"
+            }), 200)
         else:
-            # Clear session
-            del session["survey_db_collection"]
-            del session["possible_answers"]
-            del session["time_bar_enabled"]
-            session.clear()
-
-            return make_response("Ok", 200)
-    except Exception as e:
-            return make_response(f"Error validating the answers: '{str(e)}'", 400)
+            return make_response(json.dumps({
+                "next_step": f"/survey/{id}/thanks"
+            }), 200)
+    else:
+        return error_response
 
 @main_routes.route("/fetch", methods=['POST'])
 def fetch_data():
@@ -170,7 +129,7 @@ def fetch_data():
         return make_response("Forbidden.", 403)
 
     survey_name = arguments["survey_name"]
-    if survey_name not in get_surveys():
+    if survey_name not in survey_loader.get_surveys():
         return make_response("Survey not found.", 404)
 
     data = json.dumps(db_query_all(survey_name))
@@ -178,22 +137,3 @@ def fetch_data():
     response = make_response({"data": data}, 200)
     response.headers["Content-Type"] = "application/json"
     return response
-
-@main_routes.route("/questions", methods=['GET'])
-def questions_view():
-    return render_template("questions.html", ** {
-        "accent_color": f"--accent_color:#ff4b4b"
-    })
-
-@main_routes.route("/questions_modular", methods=['GET'])
-def questions_view_modular():
-    survey_name = "jobs"
-    survey = get_survey(survey_name)
-    survey_questions = []
-    if survey is not None:
-        survey_questions = survey.regular_survey
-
-    return render_template("questions_modular.html", ** {
-        "accent_color": f"--accent_color:#ff4b4b",
-        "questions": survey_questions,
-    })

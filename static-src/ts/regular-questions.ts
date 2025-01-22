@@ -1,3 +1,5 @@
+declare var surveyPostUrl: string;
+
 document.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach((element, _) => {
 	if (element.id.endsWith("-other")) {
 		element.addEventListener("change", (e) => {
@@ -30,7 +32,7 @@ form.addEventListener("submit", (e) => {
 			case "MultipleChoice": {
 				const checkedAnswers: Array<number> = new Array();
 				let otherAnswer: string | null = null;
-				question.querySelectorAll(".content > ul > li > input[type='checkbox']:checked").forEach((checkbox, i) => {
+				question.querySelectorAll(".content > ul > li > input[type='checkbox']:checked").forEach((checkbox) => {
 					if (checkbox.id.endsWith("-other")) {
 						otherAnswer = (question.querySelector(".content > ul > li > input[type='text']") as HTMLInputElement).value
 
@@ -40,7 +42,8 @@ form.addEventListener("submit", (e) => {
 							console.warn("An \"other\" answer is empty.")
 						}
 					} else {
-						checkedAnswers.push(i)
+						const checkedIndex = Number(checkbox.id.replace(`question-${questionIndex}-`, ""))
+						checkedAnswers.push(checkedIndex)
 					}
 				})
 
@@ -154,7 +157,26 @@ form.addEventListener("submit", (e) => {
 	});
 
 	if (!hasErrors) {
-		console.error("[TODO] Post the survey data.")
+		fetch(surveyPostUrl, {
+			method: "POST",
+			body: JSON.stringify(answers),
+			headers: {
+				"Content-Type": "application/json",
+			}
+		}).then(async (res) => {
+			const text = await res.text()
+			if (res.ok) {
+				const nextStepUrl = JSON.parse(text)["next_step"]
+				window.location.href = nextStepUrl
+			} else {
+				const errors = JSON.parse(text);
+				Object.entries(errors).forEach(([key, val]) => {
+					addError(Number(key), val as string)
+				});
+			}
+		}).catch((reason) => {
+			console.error(reason)
+		})
 	}
 })
 
@@ -177,7 +199,7 @@ const addError = (questionIndex: number, text: string = "There is an error in th
 	if (form.querySelector(".error2") === null) {
 		const continueError = document.createElement("div");
 		continueError.classList.add("error2");
-		continueError.innerText = "There is one or more errors. Please check your answers carefully.";
+		continueError.innerText = "There are one or more errors. Please check your answers carefully.";
 		form.insertBefore(continueError, form.querySelector("button")!);
 	}
 }

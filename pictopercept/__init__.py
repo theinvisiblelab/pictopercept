@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session
 from flask_wtf import CSRFProtect
 
-from .views import fetch_data, main_routes
+from .views import main_routes, survey_step_post
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +10,9 @@ def create_app():
     app.register_blueprint(main_routes)
 
     csrf = CSRFProtect(app)
-    csrf.exempt(fetch_data)
+    # csrf.exempt(fetch_data)
+
+    # Temporal:
+    csrf.exempt(survey_step_post)
 
     return app
