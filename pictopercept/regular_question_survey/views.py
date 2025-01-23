@@ -4,7 +4,7 @@ import logging
 from flask import Request, Response, make_response, render_template
 
 from . import validator
-from pictopercept.survey import Survey
+from pictopercept.survey_loader import Survey
 
 def get_handler(survey: Survey, current_step: str):
     survey_questions = []

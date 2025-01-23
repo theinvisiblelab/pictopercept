@@ -5,10 +5,10 @@ import uuid
 from flask import Blueprint, abort, make_response, render_template, request, session 
 import logging
 
-from db import db_query_all
-import survey_loader
-import regular_question_survey.views as regular_question_views
-import image_survey.views as image_views
+from pictopercept.db import db_query_all
+import pictopercept.survey_loader as survey_loader
+import pictopercept.regular_question_survey.views as regular_question_views
+import pictopercept.image_survey.views as image_views
 
 def get_survey_or_404(id):
     survey = survey_loader.get_survey(id)

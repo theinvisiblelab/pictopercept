@@ -7,7 +7,7 @@ from flask import Request, Response, make_response, render_template, session
 from pydantic import BaseModel, Field
 
 from pictopercept.db import db_save_survey
-from pictopercept.survey import Survey
+from pictopercept.survey_loader import Survey
 
 def get_handler(survey: Survey, current_step: str):
     df = survey.image_survey.load_datasets()
