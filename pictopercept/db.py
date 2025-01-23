@@ -1,3 +1,4 @@
+import json
 from pymongo import MongoClient
 from os import environ
 import logging
@@ -36,32 +37,52 @@ def db_save_image_survey(survey_content, survey_id):
     global client
     client["main_db"][f"{survey_id}_images"].insert_many(survey_content)
 
-def db_query_all(table_name):
+def db_query_all(table_name, chunk_size: int):
+    # Recommended chunk_size between 50-300
     global client
+
+    skip = 0
+    first_result = True
+
     if client is not None:
-        results = client["main_db"][f"{table_name}_questions"].aggregate([
-            {
-                "$lookup": {
-                    "from": f"{table_name}_images",
-                    "localField": "userId",
-                    "foreignField": "userId",
-                    "as": "image_answers"
-                }
-            }
-        ])
+        yield '{"data": ['
 
-        final_data = []
-        for result in results:
-            if len(result["image_answers"]) == 0:
-                continue
+        while True:
+            results = client["main_db"][f"{table_name}_questions"].aggregate([
+                {
+                    "$lookup": {
+                        "from": f"{table_name}_images",
+                        "localField": "userId",
+                        "foreignField": "userId",
+                        "as": "image_answers"
+                    }
+                },
+                {"$skip": skip},
+                {"$limit": chunk_size}
+            ])
 
-            result.pop("_id")
-            for i in range(len(result["image_answers"])):
-                result["image_answers"][i].pop("_id")
+            chunk_results = list(results)
+            if len(chunk_results) == 0:
+                break
 
-            final_data.append(result)
+            for result in chunk_results:
+                out = ", "
+                if first_result:
+                    out = ""
+                    first_result = False
 
-        return final_data
+                if len(result["image_answers"]) == 0:
+                    continue
+
+                # Remove MongoDB id object
+                result.pop("_id")
+                for image_answer in result["image_answers"]:
+                    image_answer.pop("_id")
+
+                out += json.dumps(result)
+                yield out
+            skip += chunk_size
+        yield "]\n}"
     else:
         logging.getLogger(__name__).error("[ERROR] DB Client is None.")
         return []

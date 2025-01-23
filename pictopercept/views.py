@@ -133,8 +133,12 @@ def fetch_data():
     if survey_name not in survey_loader.get_surveys():
         return make_response("Survey not found.", 404)
 
-    data = db_query_all(survey_name)
+    chunk_size = 100
+    if arguments.get("chunk_size") is not None:
+        chunk_size = int(arguments["chunk_size"])
 
-    response = make_response(json.dumps({"data": data}), 200)
-    response.headers["Content-Type"] = "application/json"
-    return response
+    return db_query_all(survey_name, chunk_size), {
+        "Content-Type": "application/json",
+        "Content-Disposition": "attachment",
+        "filename": "data.json"
+    }
