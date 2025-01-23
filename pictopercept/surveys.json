@@ -6,7 +6,7 @@
 		"accent_color": "#ff4b4b",
 		"big_description": "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
 		"image_survey": {
-			"duration_seconds": 5,
+			"duration_seconds": 60,
 			"answer_timer": {
 				"mode": "random", 
 				"seconds": 3
