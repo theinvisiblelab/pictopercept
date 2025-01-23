@@ -6,13 +6,13 @@ from flask import Blueprint, abort, make_response, render_template, request, ses
 import logging
 
 from pictopercept.db import db_query_all
-import pictopercept.survey_loader as survey_loader
+from pictopercept.survey_manager import common_types, survey_loader
 import pictopercept.regular_question_survey.views as regular_question_views
 import pictopercept.image_survey.views as image_views
 
-def get_survey_or_404(id):
+def get_survey_or_404(id) -> common_types.BaseSurvey:
     survey = survey_loader.get_survey(id)
-    if survey is None or not survey.enabled:
+    if survey is None: # or not survey.enabled:
         abort(404, "The survey was not found, or it is not enabled.")
     return survey
 
@@ -57,7 +57,7 @@ def survey_step_get(id, step):
         session["user_id"] = str(uuid.uuid4())
         session["questions_first"] = bool(random.choice([True, False]))
         session["step_1_completed"] = False
-        session["survey_db_collection"] = survey.db_collection
+        session["survey_db_collection"] = survey.identifier
 
     if step == "2":
         # Ensure valid session

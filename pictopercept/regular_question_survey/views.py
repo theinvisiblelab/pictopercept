@@ -4,46 +4,27 @@ import logging
 from flask import Request, Response, make_response, render_template, session
 
 from pictopercept.db import db_save_question_survey
+from pictopercept.survey_manager import common_types
 
-from . import validator
-from pictopercept.survey_loader import Survey
-
-def get_handler(survey: Survey, current_step: str):
-    survey_questions = []
-    if survey is not None:
-        survey_questions = survey.regular_survey
-    
+def get_handler(survey: common_types.BaseSurvey, current_step: str):
     return render_template("regular_questions.html", ** {
         "accent_color": f"--accent_color:#ff4b4b",
-        "questions": survey_questions,
+        "questions": survey.generate_regular_survey().questions,
         "survey_post_url": f"/survey/{survey.identifier}/{current_step}",
     })
 
-def post_handler(request: Request, survey: Survey) -> Response | None:
+def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response | None:
     data = request.get_json()
-    # logging.getLogger(__name__).warning("[INFO] Posted data: " + str(data))
 
-    if len(survey.regular_survey) is not len(data):
+    if len(survey.regular_questions) is not len(data):
         return make_response("Incorrect answer format.", 400)
 
     clean_answers = []
     errors = {}
 
     try:
-        for i, [question, answer] in enumerate(zip(survey.regular_survey, data)):
-            match question.question_type:
-                case "MultipleChoice":
-                    result = validator.validate_multiple_choice(question, answer)
-                case "SingleChoice":
-                    result = validator.validate_single_choice(question, answer)
-                case "Matrix":
-                    result = validator.validate_matrix(question, answer)
-                case "AgreementScale":
-                    result = validator.validate_agreement_scale(question, answer)
-                case "OpenShort":
-                    result = validator.validate_open_short(question, answer)
-                case _:
-                    raise Exception("")
+        for i, [question, answer] in enumerate(zip(survey.regular_questions, data)):
+            result = question.validate(answer)
 
             if isinstance(result, str):
                 errors[str(i)] = result

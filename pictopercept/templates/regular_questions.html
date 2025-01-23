@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +7,6 @@
 		<link rel="stylesheet" href="/static/css/regular-questions.css">
 		<link rel="icon" href="/static/images/favicon.png">
 	</head>
-
 	<body style="{{accent_color}}">
 		{% include 'header.html' %}
 		<form class="regular-question-form" autocomplete="off">
@@ -16,10 +14,10 @@
 			<h1>Regular questions</h1>
 			{% for question in questions %}
 				{% set question_index = loop.index0 %}
-					<div class="question-group" id="question-{{ question_index }}" question-type="{{ question.question_type }}">
+					<div class="question-group" id="question-{{ question_index }}" question-type="{{ question.kind }}">
 					<h2 class="title">{{ loop.index }}. {{ question.title }}</h2>
 					<div class="content">
-						{% if question.question_type == "SingleChoice" %}
+						{% if question.kind == "SingleChoice" %}
 							<ul>
 								{% for option in question.options %}
 									{% set option_index = loop.index0 %}
@@ -38,7 +36,7 @@
 									</li>
 								{% endif %}
 							</ul>
-						{% elif question.question_type == "MultipleChoice" %}
+						{% elif question.kind == "MultipleChoice" %}
 							<ul>
 								{% for option in question.options %}
 									{% set option_index = loop.index0 %}
@@ -55,7 +53,7 @@
 									</li>
 								{% endif %}
 							</ul>
-						{% elif question.question_type == "Matrix" %}
+						{% elif question.kind == "Matrix" %}
 							<table class="matrix">
 								<thead>
 										<tr>
@@ -79,7 +77,7 @@
 									{% endfor %}
 								</tbody>
 							</table>
-						{% elif question.question_type == "AgreementScale" %}
+						{% elif question.kind == "AgreementScale" %}
 							<div class="agreement-question">
 								<div>
 									<input type="radio" id="question-{{ question_index }}-0" name="question-{{ question_index }}">
@@ -117,7 +115,7 @@
 									</label>
 								</div>
 							</div>
-						{% elif question.question_type == "OpenShort" %}
+						{% elif question.kind == "OpenShort" %}
 							<!-- Allow optional free answers? -->
 							<input rquired type="text" placeholder="Short anwser...">
 						{% endif %}
@@ -127,7 +125,6 @@
 			<br/>
 			<button>Continue</button>
 		</form>
-
 	</body>
 	<script>
 		const surveyPostUrl = "{{survey_post_url}}"

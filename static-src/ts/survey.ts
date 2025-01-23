@@ -1,12 +1,20 @@
 // This variables are passed from the HTML <script> tag, as they
 // have to come from Flask
-declare var surveyQuestionRaw: any;
+declare var imageSurvey: ImageSurvey;
 declare var surveyPostUrl: string;
-declare var images: Array<string>;
-declare var timeBarEnabled: boolean;
-declare var datasetUrl: string;
-declare var answerDuration: number;
-declare var surveyDuration: number;
+
+interface PairQuestion {
+	images: [string, string]
+	text: string
+}
+
+interface ImageSurvey {
+	pair_questions: [PairQuestion]
+	time_bar_duration: number | null
+	duration_seconds: number | null
+	image_url_prefix: string
+	accent_color: string
+}
 
 interface AnswerImage {
 	image: string;
@@ -14,10 +22,8 @@ interface AnswerImage {
 }
 
 interface Answer {
-	index: number;
-	variables: { [key: string]: string };
 	images: [AnswerImage, AnswerImage];
-	timeBarEnabled: boolean;
+	// TODO: Should we Include spent time answering?
 };
 
 interface SurveyDomElements {
@@ -46,20 +52,16 @@ class Survey {
 	timeBar: TimeBar | null = null;
 	private barAnimationFrame: number | null = null
 
-	private readonly questionGenerator: QuestionGenerator;
-	private currentQuestion: GeneratedQuestion | null = null;
+	private currentQuestion: string | null = null;
 
-	private answerIndex: number = -2;
-	// private readonly answers: Array<[Answer, Answer]> = Array<[Answer, Answer]>();
+	private answerIndex: number = 0;
 	private readonly answers: Array<Answer> = Array<Answer>();
 
 	constructor() {
 		this.initializeListeners();
 
-		if (timeBarEnabled)
-			this.timeBar = new TimeBar(answerDuration);
-
-		this.questionGenerator = new QuestionGenerator(surveyQuestionRaw["format"], surveyQuestionRaw["variables"]);
+		if (imageSurvey.time_bar_duration !== null)
+			this.timeBar = new TimeBar(imageSurvey.time_bar_duration);
 
 		if (this.timeBar !== null) {
 			const updateTimeBar = () => {
@@ -103,8 +105,8 @@ class Survey {
 	// Survey is ended if 60 seconds passed, or used completed
 	// all the questions.
 	shouldTheSurveyEnd(): boolean {
-		return ((surveyDuration > -1 && this.surveyTimer.getSecondsPassed() >= surveyDuration)
-			|| this.answerIndex >= images.length);
+		return ((imageSurvey.duration_seconds !== null && this.surveyTimer.getSecondsPassed() >= imageSurvey.duration_seconds)
+			|| this.answerIndex >= imageSurvey.pair_questions.length);
 	}
 
 	// Action that gets done when one of the buttons of answer is pressed.
@@ -112,18 +114,14 @@ class Survey {
 		this.domElements.options.classList.add("loading");
 
 		// Add current answer
-		// TODO: Revise this, as we might be able drop most of the information
 		this.answers.push({
-			index: this.answerIndex / 2,
-			variables: this.currentQuestion!.variables,
-			timeBarEnabled: timeBarEnabled,
 			images: [
 				{
-					image: images[this.answerIndex],
+					image: imageSurvey.pair_questions[this.answerIndex].images[0],
 					chosen: option === 0,
 				},
 				{
-					image: images[this.answerIndex + 1],
+					image: imageSurvey.pair_questions[this.answerIndex].images[1],
 					chosen: option == 1
 				}
 			]
@@ -133,13 +131,12 @@ class Survey {
 			this.timeBar.reset();
 		}
 
+		this.answerIndex++;
 		this.shouldTheSurveyEnd() ? this.endSurvey() : this.advanceSurvey();
 	}
 
 	advanceSurvey() {
-		// Advance indices
-		this.currentQuestion = this.questionGenerator.generateQuestion();
-		this.answerIndex += 2;
+		this.currentQuestion = imageSurvey.pair_questions[this.answerIndex].text;
 
 		// Reset image src's to prevent later flickers
 		this.domElements.optionImage0.src = "";
@@ -155,8 +152,8 @@ class Survey {
 			});
 		};
 		// Create new image source urls
-		const imageSource0 = `${datasetUrl}/${images[this.answerIndex]}`;
-		const imageSource1 = `${datasetUrl}/${images[this.answerIndex + 1]}`;
+		const imageSource0 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.answerIndex].images[0]}`;
+		const imageSource1 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.answerIndex].images[1]}`;
 
 		// Load the new images via promises.
 		// Once both images are loaded, their URL source
@@ -168,7 +165,7 @@ class Survey {
 				this.domElements.optionImage0.src = imageSource0;
 				this.domElements.optionImage1.src = imageSource1;
 
-				this.domElements.question.innerHTML = this.currentQuestion!.text;
+				this.domElements.question.innerHTML = this.currentQuestion!;
 
 				this.timeBar?.start();
 				if (!this.surveyTimer.isInitialized()) this.surveyTimer.start();
@@ -198,7 +195,6 @@ class Survey {
 
 		this.domElements.question.innerText = "Thank you!";
 		this.domElements.question.style.paddingBottom = "10px";
-		//this.domElements.options.style.visibility = "hidden"
 		this.domElements.options.remove()
 
 		this.domElements.surveyEnd.classList.add("visible");
@@ -242,8 +238,7 @@ class Survey {
 				window.onbeforeunload = () => { }
 				window.location.href = nextStepUrl
 			} else {
-				const responseText = await response.text();
-				showErrorModal(responseText);
+				showErrorModal(text);
 			}
 		}).catch((error) => {
 			// Handle fetch error

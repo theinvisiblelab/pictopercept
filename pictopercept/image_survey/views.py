@@ -1,64 +1,33 @@
+from dataclasses import asdict
+import json
 import logging
-from typing import Dict, List
+from typing import Tuple
 
 from flask import Request, Response, make_response, render_template, session
 from pydantic import BaseModel, Field
 
 from pictopercept.db import db_save_image_survey
-from pictopercept.survey_loader import Survey
+from pictopercept.survey_manager import common_types
 
-def get_handler(survey: Survey, current_step: str):
-    df = survey.image_survey.load_datasets()
+def get_handler(survey: common_types.BaseSurvey, current_step: str):
+    generated_survey = survey.generate_image_survey()
     
-    image_urls = df[:200]["file"].tolist()
-    time_bar_enabled = survey.image_survey.use_timer_bar()
-    time_bar_duration = -1
-    if survey.image_survey.answer_timer is not None and time_bar_enabled:
-        time_bar_duration = survey.image_survey.answer_timer.seconds
-    
-    session["possible_answers"] = image_urls;
-    session["time_bar_enabled"] = time_bar_enabled;
+    session["generated_survey"] = generated_survey;
     
     return render_template("survey.html", **{
-        "dataset_url" : survey.image_survey.image_server,
-        "image_urls":image_urls,
-        "time_bar_enabled": time_bar_enabled,
-        "answer_duration": time_bar_duration,
-        "question": survey.image_survey.question.model_dump(),
-        "survey_duration": survey.image_survey.duration_seconds if survey.image_survey.duration_seconds is not None else -1,
-        "accent_color": f"--accent_color:{survey.accent_color}", # Css rule to set the custom survey accent
-        "survey_post_url": f"/survey/{survey.identifier}/{current_step}",
+        "generated_survey": generated_survey, # Used by our Python template
+        "generated_survey_json": json.dumps(asdict(generated_survey)), # Used by JavaScript
+        "survey_post_url": f"/survey/{survey.identifier}/{current_step}", # Used by JavaScript
     })
 
-def post_handler(request: Request, survey: Survey) -> Response | None:
-    class Image(BaseModel):
-        image: str = Field()
-        chosen: bool = Field()
-    
+def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response | None:
+    # Answer class gotten from Frontend-POST
     class Answer(BaseModel):
-        index: int = Field()
-        variables: Dict[str, str] = Field()
-        images: List[Image] = Field(min_length=2,max_length=2)
-        timeBarEnabled: bool = Field()
-        userId: str = Field(default="null_id")
-    
-        # image: str = Field()
-        # chosen: bool = Field()
-        # userId: str = Field() # maybe remove this
-    
-        def to_dictionary(self):
-            return {
-                "index": self.index,
-                "variables": self.variables,
-                "images": self.images,
-                "timeBarEnabled": self.timeBarEnabled,
-                "userId": self.userId,
-    
-                # "image": self.image,
-                # "chosen": self.chosen,
-                # "userId": self.userId,
-                # "questionVariables": self.questionVariables,
-            }
+        class Image(BaseModel):
+            image: str = Field()
+            chosen: bool = Field()
+
+        images: Tuple[Image, Image] = Field()
 
     try:
         # Each answer is a pair containing both
@@ -69,33 +38,39 @@ def post_handler(request: Request, survey: Survey) -> Response | None:
             # Custom error message when invalid json
             raise Exception("The request does not have a proper body.")
 
-        current_image_index = 0
+        # This is safe to use, as is injected and encrypted into the session cookie.
+        generated_survey = session["generated_survey"]
+        user_id : str = session["user_id"]
 
-        # Note: While it is rare that anyone would try to "fake spam" survey
-        # data, we check each answer structure and types, to ensure they
-        # are actually the correct ones.
         clean_answers = []
-        for answer in answers:
+        for pair_question, answer in zip(generated_survey["pair_questions"], answers):
             try:
                 clean_answer = Answer(**answer)
             except Exception:
                 raise Exception("The answer format is wrong.") # Raise custom exception, instead of Pydantic one
 
-            for i in range(0, 2):
-                # Ensure the image is the set of the user
-                valid = session["possible_answers"][current_image_index] == clean_answer.images[i].image
+            image_0 = clean_answer.images[0]
+            image_1 = clean_answer.images[1]
 
-                # Ensure the time bar enabled is also correct
-                valid = valid and session["time_bar_enabled"] == clean_answer.timeBarEnabled
+            valid_images = image_0.image == pair_question["images"][0] and image_1.image == pair_question["images"][1]
+            valid_choice = (image_0.chosen and not image_1.chosen) or (image_1.chosen and not image_0.chosen)
 
-                if valid:
-                    current_image_index += 1
-                else:
-                    raise Exception("The answers provided do not match with the user-specific ones.")
-
-            # If both are valid:
-            clean_answer.userId = session["user_id"]
-            clean_answers.append(clean_answer.model_dump())
+            if valid_images and valid_choice:
+                clean_answers.append({
+                    "userId": user_id,
+                    "images": [
+                        {
+                            "image": image_0.image,
+                            "chosen": image_0.chosen,
+                        },
+                        {
+                            "image": image_1.image,
+                            "chosen": image_1.chosen,
+                        },
+                    ]
+                })
+            else:
+                raise Exception("The answers provided do not match with the user-specific ones.")
 
         try:
            db_save_image_survey(clean_answers, session["survey_db_collection"])

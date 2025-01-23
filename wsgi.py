@@ -4,7 +4,7 @@ from os import environ
 from dotenv import load_dotenv
 
 from pictopercept.db import db_init
-from pictopercept.survey_loader import load_surveys
+from pictopercept.survey_manager.survey_loader import load_surveys
 
 logging.getLogger(__name__).warning("[INFO] Loading .ENV file...")
 load_dotenv()

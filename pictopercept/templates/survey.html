@@ -1,66 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Survey - Pictopercept</title>
-	<link rel="stylesheet" href="/static/css/survey.css">
-	<link rel="icon" href="/static/images/favicon.png">
-</head>
-
-<body style="{{accent_color}}">
-	{% include 'header.html' %}
-	<form class="image-form">
-		<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
-		<div class="question" id="question">
-			<span style="opacity: .4">Loading...</span>
-		</div>
-		<div class="options loading" id="options">
-			<div class="option" id="option0">
-				<img src="" />
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Survey - Pictopercept</title>
+		<link rel="stylesheet" href="/static/css/survey.css">
+		<link rel="icon" href="/static/images/favicon.png">
+	</head>
+	<body style="{{generated_survey.accent_color}}">
+		{% include 'header.html' %}
+		<form class="image-form">
+			<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token() }}" />
+			<div class="question" id="question">
+				<span style="opacity: .4">Loading...</span>
 			</div>
-			<div class="divisor"></div>
-			<div class="option" id="option1">
-				<img src="" />
+			<div class="options loading" id="options">
+				<div class="option" id="option0">
+					<img src="" />
+				</div>
+				<div class="divisor"></div>
+				<div class="option" id="option1">
+					<img src="" />
+				</div>
+				<div class="spinner-outer">
+					<div class="spinner"></div>
+				</div>
 			</div>
-			<div class="spinner-outer">
-				<div class="spinner"></div>
+			<div class="survey-end" id="survey-end" style="display:none">
+				<span>The survey has ended. Thank you for participating!</span>
+				<div class="loading-part">
+					<div class="spinner"></div>
+					<span>Hold on, we are saving your answers...</span>
+				</div>
+				<img class="end-image" src="/static/images/changeface.gif" />
 			</div>
-		</div>
-		<div class="survey-end" id="survey-end" style="display:none">
-			<span>The survey has ended. Thank you for participating!</span>
-			<div class="loading-part">
-				<div class="spinner"></div>
-				<span>Hold on, we are saving your answers...</span>
-			</div>
-			<img class="end-image" src="/static/images/changeface.gif" />
-		</div>
-		{% if time_bar_enabled %}
-		<div class="time-bar-outer">
-			<div class="status" id="time-bar-status">
-				⏰ Try to answer as fast as possible.
-				<span id="time-taken"></span>
-			</div>
-			<div class="time-bar smooth" id="time-bar" style="--progress:0%;"></div>
-		</div>
-		{% endif %}
-	</form>
-
-</body>
-<script>
-	const datasetUrl = "{{dataset_url}}"
-	const surveyPostUrl = "{{survey_post_url}}"
-	const surveyQuestionRaw = {{question | safe}}
-	const images = {{image_urls | safe}}
-	const timeBarEnabled = "{{time_bar_enabled| safe}}" === "True";
-	const answerDuration = {{answer_duration| safe}};
-	const surveyDuration = {{survey_duration| safe}};
-</script>
-<script src="/static/js/question.js"></script>
-<script src="/static/js/time-bar.js"></script>
-<script src="/static/js/timer.js"></script>
-<script src="/static/js/modal.js"></script>
-<script src="/static/js/survey.js"></script>
-
+			{% if generated_survey.time_bar_duration %}
+				<div class="time-bar-outer">
+					<div class="status" id="time-bar-status">
+						⏰ Try to answer as fast as possible.
+						<span id="time-taken"></span>
+					</div>
+					<div class="time-bar smooth" id="time-bar" style="--progress:0%;"></div>
+				</div>
+			{% endif %}
+		</form>
+	</body>
+	<script>
+		const imageSurvey = {{generated_survey_json|safe}}
+		const surveyPostUrl = "{{survey_post_url}}"
+	</script>
+	<script src="/static/js/time-bar.js"></script>
+	<script src="/static/js/timer.js"></script>
+	<script src="/static/js/modal.js"></script>
+	<script src="/static/js/survey.js"></script>
 </html>

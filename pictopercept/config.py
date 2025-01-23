@@ -1,5 +1,3 @@
-import uuid
-
 class Config:
     SESSION_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SECURE = True
