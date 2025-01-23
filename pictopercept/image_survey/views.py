@@ -1,12 +1,10 @@
-import json
 import logging
 from typing import Dict, List
-import uuid
 
 from flask import Request, Response, make_response, render_template, session
 from pydantic import BaseModel, Field
 
-from pictopercept.db import db_save_survey
+from pictopercept.db import db_save_image_survey
 from pictopercept.survey_loader import Survey
 
 def get_handler(survey: Survey, current_step: str):
@@ -18,7 +16,6 @@ def get_handler(survey: Survey, current_step: str):
     if survey.image_survey.answer_timer is not None and time_bar_enabled:
         time_bar_duration = survey.image_survey.answer_timer.seconds
     
-    session["survey_db_collection"] = survey.db_collection
     session["possible_answers"] = image_urls;
     session["time_bar_enabled"] = time_bar_enabled;
     
@@ -73,7 +70,6 @@ def post_handler(request: Request, survey: Survey) -> Response | None:
             raise Exception("The request does not have a proper body.")
 
         current_image_index = 0
-        user_id = str(uuid.uuid4())
 
         # Note: While it is rare that anyone would try to "fake spam" survey
         # data, we check each answer structure and types, to ensure they
@@ -98,22 +94,16 @@ def post_handler(request: Request, survey: Survey) -> Response | None:
                     raise Exception("The answers provided do not match with the user-specific ones.")
 
             # If both are valid:
-            clean_answer.userId = user_id
+            clean_answer.userId = session["user_id"]
             clean_answers.append(clean_answer.model_dump())
 
         try:
-           db_save_survey(clean_answers, session["survey_db_collection"])
+           db_save_image_survey(clean_answers, session["survey_db_collection"])
         except Exception as e:
             logging.getLogger(__name__).error("[ERROR] Error saving user answers into the MongoDB database.")
             logging.getLogger(__name__).error("[ERROR] " + str(e))
             return make_response(f"There was an error with the database while saving your answers.", 500)
         else:
-            # Clear session
-            #del session["survey_db_collection"]
-            #del session["possible_answers"]
-            #del session["time_bar_enabled"]
-            #session.clear()
-
             return None
     except Exception as e:
             return make_response(f"Error validating the answers: '{str(e)}'", 400)

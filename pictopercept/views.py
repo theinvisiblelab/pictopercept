@@ -57,6 +57,7 @@ def survey_step_get(id, step):
         session["user_id"] = str(uuid.uuid4())
         session["questions_first"] = bool(random.choice([True, False]))
         session["step_1_completed"] = False
+        session["survey_db_collection"] = survey.db_collection
 
     if step == "2":
         # Ensure valid session
@@ -132,8 +133,8 @@ def fetch_data():
     if survey_name not in survey_loader.get_surveys():
         return make_response("Survey not found.", 404)
 
-    data = json.dumps(db_query_all(survey_name))
+    data = db_query_all(survey_name)
 
-    response = make_response({"data": data}, 200)
+    response = make_response(json.dumps({"data": data}), 200)
     response.headers["Content-Type"] = "application/json"
     return response

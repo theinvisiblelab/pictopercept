@@ -27,21 +27,41 @@ def db_init(debug_mode):
         logging.getLogger(__name__).error("[ERROR] Could not connect to the MongoDB database. Are the credentials/URI ok?")
         logging.getLogger(__name__).error("[ERROR] " + str(e))
         exit(errno.EINTR)
-
-def db_save_survey(survey_content, table_name):
+        
+def db_save_question_survey(survey_content, survey_id):
     global client
-    client["main_db"][table_name].insert_many(survey_content)
+    client["main_db"][f"{survey_id}_questions"].insert_one(survey_content)
+
+def db_save_image_survey(survey_content, survey_id):
+    global client
+    client["main_db"][f"{survey_id}_images"].insert_many(survey_content)
 
 def db_query_all(table_name):
     global client
     if client is not None:
-        result = client["main_db"][table_name].find()
+        results = client["main_db"][f"{table_name}_questions"].aggregate([
+            {
+                "$lookup": {
+                    "from": f"{table_name}_images",
+                    "localField": "userId",
+                    "foreignField": "userId",
+                    "as": "image_answers"
+                }
+            }
+        ])
 
-        l = []
-        for doc in result:
-            doc.pop("_id")
-            l.append(doc)
-        return l
+        final_data = []
+        for result in results:
+            if len(result["image_answers"]) == 0:
+                continue
+
+            result.pop("_id")
+            for i in range(len(result["image_answers"])):
+                result["image_answers"][i].pop("_id")
+
+            final_data.append(result)
+
+        return final_data
     else:
         logging.getLogger(__name__).error("[ERROR] DB Client is None.")
         return []

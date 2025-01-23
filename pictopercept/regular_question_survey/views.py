@@ -1,7 +1,9 @@
 import json
 import logging
 
-from flask import Request, Response, make_response, render_template
+from flask import Request, Response, make_response, render_template, session
+
+from pictopercept.db import db_save_question_survey
 
 from . import validator
 from pictopercept.survey_loader import Survey
@@ -19,7 +21,7 @@ def get_handler(survey: Survey, current_step: str):
 
 def post_handler(request: Request, survey: Survey) -> Response | None:
     data = request.get_json()
-    logging.getLogger(__name__).warning("[INFO] Posted data: " + str(data))
+    # logging.getLogger(__name__).warning("[INFO] Posted data: " + str(data))
 
     if len(survey.regular_survey) is not len(data):
         return make_response("Incorrect answer format.", 400)
@@ -50,9 +52,17 @@ def post_handler(request: Request, survey: Survey) -> Response | None:
             clean_answers.append(result)
 
         if len(errors) == 0:
-            # TODO: Push the data into the DB
-            # Then, continue with the pairwise OR end the survey
-            return None
+            try:
+                db_save_question_survey({
+                    "userId": session["user_id"],
+                    "answers": clean_answers
+                }, session["survey_db_collection"])
+            except Exception as e:
+                logging.getLogger(__name__).error("[ERROR] Error saving user answers into the MongoDB database.")
+                logging.getLogger(__name__).error("[ERROR] " + str(e))
+                return make_response(f"There was an error with the database while saving your answers.", 500)
+            else:
+                return None
         else:
             return make_response(errors, 400)
 

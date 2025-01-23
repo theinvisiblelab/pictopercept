@@ -1,4 +1,3 @@
-import logging
 from typing import Dict
 
 def validate_multiple_choice(question, answer) -> Dict | str:
@@ -11,7 +10,6 @@ def validate_multiple_choice(question, answer) -> Dict | str:
     }
 
     for chosenIndex in answer["checkedAnswers"]:
-        logging.getLogger(__name__).warn(int(chosenIndex))
         if int(chosenIndex) < 0 or int(chosenIndex) >= len(question.options):
             raise Exception("")
         clean_answer["checked_answers"].append(int(chosenIndex))
