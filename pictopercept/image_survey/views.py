@@ -16,7 +16,7 @@ def get_handler(survey: common_types.BaseSurvey, current_step: str):
     
     return render_template("survey.html", **{
         "generated_survey": generated_survey, # Used by our Python template
-        "generated_survey_json": json.dumps(asdict(generated_survey)), # Used by JavaScript
+        "generated_survey_json": json.dumps(asdict(generated_survey)), # Used by JavaScript. TODO: Remove/drop the "attention_checks" field
         "survey_post_url": f"/survey/{survey.identifier}/{current_step}", # Used by JavaScript
     })
 
@@ -71,6 +71,24 @@ def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response 
                 })
             else:
                 raise Exception("The answers provided do not match with the user-specific ones.")
+
+        # Now, check for attention checks
+        failed_attention_checks = 0
+        for i, j in generated_survey["attention_checks"]:
+            if i > len(clean_answers) or j > len(clean_answers):
+                continue
+
+            pair_0 = clean_answers[i]
+            pair_1 = clean_answers[j]
+
+            chosen_same = pair_0["images"][0]["chosen"] == pair_1["images"][1]["chosen"]
+
+            if not chosen_same:
+                failed_attention_checks += 1
+
+        # Attention check fail threshold?
+        # Should failed be stored also (they could be flagged)?
+        logging.getLogger(__name__).warning(f"[INFO] Failed attention checks: {failed_attention_checks}")
 
         try:
            db_save_image_survey(clean_answers, session["survey_db_collection"])

@@ -3,6 +3,28 @@
 declare var imageSurvey: ImageSurvey;
 declare var surveyPostUrl: string;
 
+// This should be removed from the final build
+// const debuggingAttentionChecks = false
+// const repeatedIndices: Array<[number, number]> = []
+// 
+// if (debuggingAttentionChecks) {
+// 	for (let i = 0; i < imageSurvey.pair_questions.length; i++) {
+// 		for (let j = i + 1; j < imageSurvey.pair_questions.length; j++) {
+// 			const flipped_pairs = [
+// 				imageSurvey.pair_questions[i].images[1],
+// 				imageSurvey.pair_questions[i].images[0]
+// 			]
+// 
+// 			if (flipped_pairs[0] === imageSurvey.pair_questions[j].images[0] &&
+// 				flipped_pairs[1] === imageSurvey.pair_questions[j].images[1]) {
+// 				const indices = [i, j];
+// 				indices.sort()
+// 				repeatedIndices.push([indices[0], indices[1]])
+// 			}
+// 		}
+// 	}
+// }
+
 interface PairQuestion {
 	images: [string, string]
 	text: string
@@ -136,7 +158,36 @@ class Survey {
 	}
 
 	advanceSurvey() {
+		// if (debuggingAttentionChecks) {
+		// 	let shouldChoose = null;
+		// 	for (let i = 0; i < repeatedIndices.length; i++) {
+		// 		if (repeatedIndices[i][0] >= this.answers.length) {
+		// 			// console.log("Skipped one")
+		// 			continue;
+		// 		}
+
+		// 		if (repeatedIndices[i][1] === this.answerIndex) {
+		// 			// This means we already chosen the first pair of this type
+		// 			if (this.answers[repeatedIndices[i][0]].images[0].chosen) {
+		// 				shouldChoose = "right"
+		// 			} else {
+		// 				shouldChoose = "left"
+		// 			}
+
+		// 			break;
+		// 		}
+		// 	}
+
+		// 	// console.warn("Should choose", shouldChoose)
+
+		// 	if (shouldChoose !== null) {
+		// 		this.currentQuestion = `(This is an attention check. You should choose \"${shouldChoose}\" to pass) ${imageSurvey.pair_questions[this.answerIndex].text}`;
+		// 	} else {
+		// 		this.currentQuestion = imageSurvey.pair_questions[this.answerIndex].text;
+		// 	}
+		// } else {
 		this.currentQuestion = imageSurvey.pair_questions[this.answerIndex].text;
+		//}
 
 		// Reset image src's to prevent later flickers
 		this.domElements.optionImage0.src = "";

@@ -35,6 +35,7 @@ class PairQuestion:
 @dataclass
 class GeneratedImageSurvey:
     pair_questions: List[PairQuestion]
+    attention_checks: List[Tuple[int, int]] # Indices to the pair repeated questions
     time_bar_duration: Optional[int]
     duration_seconds: Optional[int]
     image_url_prefix: str

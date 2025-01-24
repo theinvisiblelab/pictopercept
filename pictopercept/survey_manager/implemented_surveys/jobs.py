@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional, final
 
-from numpy import random
+import numpy as np
 import pandas as pd
 
 from pictopercept.survey_manager import common_types
@@ -88,38 +88,60 @@ class JobsSurvey(common_types.BaseSurvey):
 
         self.df_dataset = df
 
-    def generate_question_text(self) -> str:
-        jobs = ["a doctor", "a lawyer", "a nurse", "an author", "a teacher", "an engineer", "a scientist",
-                "a chef", "an artist", "an architect", "a pilot", "a journalist", "a dentist", "a therapist",
-                "an accountant", "a musician", "a designer", "a programmer", "a pharmacist", "a plumber",
-                "an electrician", "a librarian", "an analyst", "a consultant", "an entrepreneur", "a researcher",
-                "a technician", "an editor", "a translator", "a veterinarian", "a social worker", "a photographer"]
+    def generate_question_text(self) -> List[str]:
+        jobs = [
+            "a Chief Executive Officer (CEO)",
+            "a Computer Programmer",
+            "a Doctor",
+            "a Nurse",
+            "a Primary School Teacher",
+            "a Police Officer",
+            "a Housekeeper",
+            "a Construction Worker"
+        ]
 
-        job = random.choice(jobs)
-        return f"Who of these is {job}?"
+        generated_jobs = np.matrix([[job for _ in range(8)] for job in jobs])
+        return generated_jobs.flatten().tolist()[0]
 
 
     def generate_image_survey(self) -> common_types.GeneratedImageSurvey:
-        desired_pair_count = 200
-        survey_images = self.df_dataset["file"].sample(desired_pair_count).tolist()
+        desired_pair_count = 64
+        survey_images = self.df_dataset["file"].sample(desired_pair_count * 2).tolist()
+        generated_jobs = self.generate_question_text()
 
-        # TODO:
-        # - Implement custom logic for 8 times each job (8 * 8 = 64 pairs).
-        # - Implement attention check pairs (6 in total), and mark them as so.
+        image_count = len(survey_images)
 
-        pair_count = len(survey_images)
+        # Create the pairs
+        final_pairs = []
+        for i, job in zip(range(0, image_count, 2), generated_jobs):
+            question_text = f"Who of these is {job}?"
+            final_pairs.append(common_types.PairQuestion((survey_images[i], survey_images[i+1]), question_text))
 
-        pair_questions = []
-        for i in range(0, pair_count, 2):
-            question_text = self.generate_question_text()
-            image_pair = (survey_images[i], survey_images[i+1])
-            pair_questions.append(common_types.PairQuestion(image_pair, question_text))
-        
+        # Select 6 random pairs, flip them and add them
+        repeated_pairs = np.random.choice(final_pairs, 6, replace=False)
+        for rp in repeated_pairs:
+            flipped_pair = (rp.images[1], rp.images[0])
+            final_pairs.append(common_types.PairQuestion(flipped_pair, rp.text))
+
+        np.random.shuffle(final_pairs)
+
+        # Shuffle pairs, and save both indices of pairs that are
+        # repeated.This is needed because we don't know their new
+        # indices.
+        attention_checks = []
+        for i in range(len(final_pairs)):
+            flipped_images = (final_pairs[i].images[1], final_pairs[i].images[0])
+            for j in range(i+1, len(final_pairs)):
+                if final_pairs[j].images[0] == flipped_images[0] and final_pairs[j].images[1] == flipped_images[1]:
+                    attention_checks.append((i, j))
+
         time_bar_duration = None
         if self.answer_timer.should_use():
             time_bar_duration = self.answer_timer.duration
 
-        return common_types.GeneratedImageSurvey(pair_questions, time_bar_duration, self.duration_seconds, self.image_url_prefix, self.accent_color)
+        logging.getLogger(__name__).warning(f"[INFO] Attention checks: {attention_checks}")
+
+        return common_types.GeneratedImageSurvey(final_pairs, attention_checks, time_bar_duration, self.duration_seconds, self.image_url_prefix, self.accent_color)
     
     def generate_regular_survey(self) -> common_types.GeneratedRegularSurvey:
         regular_questions = self.regular_questions
