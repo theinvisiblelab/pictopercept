@@ -27,6 +27,7 @@ services:
       - CFD_DATASET_PATH=${CFD_DATASET_PATH}
     volumes:
       - ./:/app
+      - cfd_dataset:${CFD_DATASET_PATH}
     depends_on:
       -  mongo  
 
