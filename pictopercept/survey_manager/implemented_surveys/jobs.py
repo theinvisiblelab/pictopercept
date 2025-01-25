@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Optional, final
 
 import numpy as np
@@ -30,8 +31,8 @@ class JobsSurvey(common_types.BaseSurvey):
         return 60
 
     @property
-    def image_url_prefix(self) -> str:
-        return "https://raw.githubusercontent.com/saurabh-khanna/pictopercept/refs/heads/main/data/fairface/nomargin/"
+    def dataset_path(self) -> str:
+        return os.environ.get("CFD_DATASET_PATH", "")
 
     @property
     def regular_questions(self) -> List[regular_question_types.RegularQuestion]:
@@ -70,23 +71,19 @@ class JobsSurvey(common_types.BaseSurvey):
             regular_question_types.OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?")
         ]
 
-    df_dataset: pd.DataFrame
+    cfd_dataset: pd.DataFrame
 
     def __init__(self):
-        self.load_datasets([
-            "fairface/label_train.csv",
-            "fairface/label_val.csv"
-        ])
+        self.load_dataset("cfd.csv")
 
-    def load_datasets(self, datasets: List[str]):
-        df = pd.concat((pd.read_csv("pictopercept/datasets/"+dataset) for dataset in datasets), ignore_index=True)
-        df = df[~df['age'].isin(['0-2', '3-9', '10-19'])]  # drop non-adults
+    def load_dataset(self, dataset: str):
+        df = pd.read_csv("pictopercept/datasets/"+dataset)
 
         if not isinstance(df, pd.DataFrame):
             logging.getLogger(__name__).critical("[ERROR] There is no DataFrame dataset loaded. Is it instance of DataFrame?")
             exit(1)
 
-        self.df_dataset = df
+        self.cfd_dataset = df
 
     def generate_question_text(self) -> List[str]:
         jobs = [
@@ -106,7 +103,7 @@ class JobsSurvey(common_types.BaseSurvey):
 
     def generate_image_survey(self) -> common_types.GeneratedImageSurvey:
         desired_pair_count = 64
-        survey_images = self.df_dataset["file"].sample(desired_pair_count * 2).tolist()
+        survey_images = self.cfd_dataset["file"].sample(desired_pair_count * 2).tolist()
         generated_jobs = self.generate_question_text()
 
         image_count = len(survey_images)
@@ -141,7 +138,7 @@ class JobsSurvey(common_types.BaseSurvey):
 
         logging.getLogger(__name__).warning(f"[INFO] Attention checks: {attention_checks}")
 
-        return common_types.GeneratedImageSurvey(final_pairs, attention_checks, time_bar_duration, self.duration_seconds, self.image_url_prefix, self.accent_color)
+        return common_types.GeneratedImageSurvey(final_pairs, attention_checks, time_bar_duration, self.duration_seconds, self.dataset_path, self.accent_color)
     
     def generate_regular_survey(self) -> common_types.GeneratedRegularSurvey:
         regular_questions = self.regular_questions

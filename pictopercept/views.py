@@ -2,7 +2,7 @@ import json
 import os
 from numpy import random
 import uuid
-from flask import Blueprint, abort, make_response, render_template, request, session 
+from flask import Blueprint, abort, make_response, render_template, request, send_file, session 
 import logging
 
 from pictopercept.db import db_query_all
@@ -12,7 +12,7 @@ import pictopercept.image_survey.views as image_views
 
 def get_survey_or_404(id) -> common_types.BaseSurvey:
     survey = survey_loader.get_survey(id)
-    if survey is None: # or not survey.enabled:
+    if survey is None:
         abort(404, "The survey was not found, or it is not enabled.")
     return survey
 
@@ -142,3 +142,23 @@ def fetch_data():
         "Content-Disposition": "attachment",
         "filename": "data.json"
     }
+
+@main_routes.route("/img/<answer_index>/<side>", methods=['GET'])
+def get_cfd_image(answer_index, side):
+    if session.get("generated_survey") is None:
+        abort(404);
+
+    if side != "l" and side != "r":
+        abort(404);
+    side = 0 if side == "l" else 1
+
+    index = int(answer_index)
+    if index < 0 or index >= len(session["generated_survey"]["pair_questions"]):
+        abort(404);
+
+    logging.getLogger(__name__).warning(f"Dataset path: {session["generated_survey"]["dataset_path"]}")
+    image_path = os.path.abspath(f'{session["generated_survey"]["dataset_path"]}/{session["generated_survey"]["pair_questions"][index]["images"][side]}')
+    if not os.path.exists(image_path):
+        abort(404)
+
+    return send_file(image_path, mimetype="image/jpeg")

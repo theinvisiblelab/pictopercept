@@ -38,7 +38,7 @@ class GeneratedImageSurvey:
     attention_checks: List[Tuple[int, int]] # Indices to the pair repeated questions
     time_bar_duration: Optional[int]
     duration_seconds: Optional[int]
-    image_url_prefix: str
+    dataset_path: str
     accent_color: str
 
 @dataclass
@@ -70,7 +70,7 @@ class BaseSurvey(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def image_url_prefix(self) -> str: pass
+    def dataset_path(self) -> str: pass
 
     @property
     @abstractmethod

@@ -216,7 +216,7 @@ class Survey {
 		 * @returns {Promise<HTMLImageElement>}
 		 */
 		const loadImage = (source) => {
-			return new Promise((resolve, reject) => {
+			return new Promise(async (resolve, reject) => {
 				let image = new Image();
 				image.src = source;
 
@@ -226,8 +226,11 @@ class Survey {
 		};
 
 		// Create new image source urls
-		const imageSource0 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.#answerIndex].images[0]}`;
-		const imageSource1 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.#answerIndex].images[1]}`;
+		// const imageSource0 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.#answerIndex].images[0]}`;
+		// const imageSource1 = `${imageSurvey.image_url_prefix}/${imageSurvey.pair_questions[this.#answerIndex].images[1]}`;
+
+		const imageSource0 = `/img/${this.#answerIndex}/l`;
+		const imageSource1 = `/img/${this.#answerIndex}/r`;
 
 		// Load the new images via promises.
 		// Once both images are loaded, their URL source

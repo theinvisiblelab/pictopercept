@@ -24,6 +24,7 @@ services:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - FETCH_PASSWORD=${FETCH_PASSWORD}
       - DATABASE_PATH=${DATABASE_PATH}
+      - CFD_DATASET_PATH=${CFD_DATASET_PATH}
     volumes:
       - ./:/app
     depends_on:
@@ -41,3 +42,9 @@ volumes:
       type: 'none'
       o: 'bind'
       device: '${DATABASE_PATH}'
+  cfd_dataset:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '${CFD_DATASET_PATH}'
