@@ -1,0 +1,183 @@
+header {
+	top: 0;
+	position: absolute;
+}
+
+html,
+body {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+form.image-form {
+	margin: auto;
+	padding: 30px;
+	background-color: #fff;
+	border-radius: 5px;
+	box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
+form.image-form>.question {
+	font-size: 24px;
+	padding-bottom: 20px;
+}
+form.image-form>.question>b {
+	text-transform: uppercase;
+}
+form.image-form>.options {
+	display: flex;
+	position: relative;
+	justify-content: space-between;
+	gap: 20px;
+}
+form.image-form>.options>.option {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 10px;
+	border-radius: 5px;
+	transition: 0.1s background-color linear, 0.1s transform linear;
+}
+form.image-form>.options>.option:hover {
+	cursor: pointer;
+	background-color: #f2f2f2;
+	transform: rotate(1deg) scale(1.03);
+}
+form.image-form>.options>.option>img {
+	width: 330px;
+	height: 330px;
+	background: #000;
+	object-fit: cover;
+	border-radius: 5px;
+}
+form.image-form>.options>.spinner-outer {
+	display: none;
+}
+form.image-form>.options.loading>.option {
+	visibility: hidden;
+}
+form.image-form>.options.loading>.spinner-outer {
+	display: flex;
+}
+form.image-form>.options.loading>.spinner-outer>.spinner {
+	display: block;
+}
+form.image-form .spinner-outer {
+	position: absolute;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+form.image-form .spinner {
+	display: none;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: linear-gradient(0deg, rgba(255, 61, 0, 0.2) 33%, #ff4b4b 100%);
+	box-sizing: border-box;
+	animation: rotation 1s linear infinite;
+}
+form.image-form .spinner::after {
+	content: "";
+	box-sizing: border-box;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: #fff;
+}
+form.image-form>.time-bar-outer {
+	margin-top: 15px;
+}
+form.image-form>.time-bar-outer>.status {
+	color: #000;
+}
+form.image-form>.time-bar-outer>.status.exceeding {
+	color: var(--accent_color, #ff4b4b);
+}
+form.image-form>.time-bar-outer>.time-bar {
+	background: rgb(230, 230, 230);
+	width: 100%;
+	height: 10px;
+	position: relative;
+	margin-top: 5px;
+	border-radius: 10px;
+	overflow: hidden;
+}
+form.image-form>.time-bar-outer>.time-bar::after {
+	content: "";
+	width: var(--progress);
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: var(--accent_color, #ff4b4b);
+}
+form.image-form>.time-bar-outer>.time-bar.smooth::after {
+	transition: all 0.2s linear;
+}
+
+@keyframes rotation {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@media (max-width: 850px) {
+	form.image-form .options .option>img {
+		width: 36dvw;
+		height: 36dvw;
+	}
+}
+
+@media (max-width: 575px) {
+	header {
+		position: relative;
+	}
+
+	form.image-form {
+		margin-top: 0;
+		width: 95%;
+		box-sizing: border-box;
+		padding: 15px;
+	}
+	form.image-form>.question {
+		font-size: 15px;
+	}
+	form.image-form .options {
+		flex-direction: column;
+		gap: 10px;
+	}
+	form.image-form .options>.option {
+		align-items: center;
+	}
+	form.image-form .options>.option>button {
+		width: 200px;
+	}
+	form.image-form .options>.option>img {
+		width: 150px;
+		height: 150px;
+	}
+	form.image-form .options>.divisor {
+		width: 100%;
+		height: 1px;
+		background-color: rgba(var(--accent_color, #ff4b4b), 0.1);
+	}
+	form.image-form>.time-bar-outer>.status {
+		font-size: 13px;
+	}
+	form.image-form>.time-bar-outer>.time-bar {
+		height: 5px;
+	}
+}

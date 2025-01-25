@@ -4,6 +4,9 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Survey - Pictopercept</title>
+		<link rel="stylesheet" href="/static/css/fonts.css">
+		<link rel="stylesheet" href="/static/css/common.css">
+		<link rel="stylesheet" href="/static/css/header.css">
 		<link rel="stylesheet" href="/static/css/survey.css">
 		<link rel="icon" href="/static/images/favicon.png">
 	</head>
@@ -26,14 +29,6 @@
 					<div class="spinner"></div>
 				</div>
 			</div>
-			<div class="survey-end" id="survey-end" style="display:none">
-				<span>The survey has ended. Thank you for participating!</span>
-				<div class="loading-part">
-					<div class="spinner"></div>
-					<span>Hold on, we are saving your answers...</span>
-				</div>
-				<img class="end-image" src="/static/images/changeface.gif" />
-			</div>
 			{% if generated_survey.time_bar_duration %}
 				<div class="time-bar-outer">
 					<div class="status" id="time-bar-status">
@@ -46,8 +41,8 @@
 		</form>
 	</body>
 	<script>
-		const imageSurvey = {{generated_survey_json|safe}}
-		const surveyPostUrl = "{{survey_post_url}}"
+		window.imageSurvey = {{generated_survey_json|safe}}
+		window.surveyPostUrl = "{{survey_post_url}}";
 	</script>
 	<script src="/static/js/time-bar.js"></script>
 	<script src="/static/js/timer.js"></script>

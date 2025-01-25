@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Home - Pictopercept</title>
-	<link rel="stylesheet" href="/static/css/index.css">
-	<link rel="icon" href="/static/images/favicon.png">
-</head>
-
-<body style="{{accent_color}}">
-	{% include 'header.html' %}
-	<main class="page-container small">
-		<div class="double">
-			<div>
-				<img src="/static/images/changeface.gif" />
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Home - Pictopercept</title>
+		<link rel="stylesheet" href="/static/css/fonts.css">
+		<link rel="stylesheet" href="/static/css/common.css">
+		<link rel="stylesheet" href="/static/css/header.css">
+		<link rel="stylesheet" href="/static/css/index.css">
+		<link rel="icon" href="/static/images/favicon.png">
+	</head>
+	<body style="{{accent_color}}">
+		{% include 'header.html' %}
+		<main class="page-container small">
+			<div class="double">
+				<div>
+					<img src="/static/images/changeface.gif" />
+				</div>
+				<div>
+					{{ survey_description|safe }}
+				</div>
 			</div>
-			<div>
-				{{ survey_description|safe }}
-			</div>
-		</div>
-		<a class="button-link" href="/survey/{{ survey_id }}/1">Let us begin!</a>
-	</main>
-</body>
+			<a class="button-link" href="/survey/{{ survey_id }}/1">Let us begin!</a>
+		</main>
+	</body>
 </html>

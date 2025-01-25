@@ -23,6 +23,7 @@ services:
       - MONGODB_URI=${MONGODB_URI}
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - FETCH_PASSWORD=${FETCH_PASSWORD}
+      - DATABASE_PATH=${DATABASE_PATH}
     volumes:
       - ./:/app
     depends_on:
@@ -39,4 +40,4 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/data/db'
+      device: '${DATABASE_PATH}'

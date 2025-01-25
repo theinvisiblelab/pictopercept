@@ -1,18 +1,5 @@
 # syntax=docker/dockerfile:1.4
 
-# Build
-FROM node:22.11-bullseye-slim as build
-
-WORKDIR /app
-
-COPY ./package.json .
-RUN npm install
-
-COPY ./static-src ./static-src
-COPY ./tsconfig.json .
-RUN npm run build
-
-# Final
 FROM --platform=$BUILDPLATFORM python:3.11-alpine AS builder
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -25,8 +12,6 @@ RUN pip install --upgrade pip && \
 
 COPY ./pictopercept ./pictopercept
 COPY ./wsgi.py .
-
-COPY --from=build /app/pictopercept/static ./pictopercept/static
 
 CMD ["gunicorn", "wsgi:app"]
 

@@ -4,6 +4,9 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Survey - Pictopercept</title>
+		<link rel="stylesheet" href="/static/css/fonts.css">
+		<link rel="stylesheet" href="/static/css/common.css">
+		<link rel="stylesheet" href="/static/css/header.css">
 		<link rel="stylesheet" href="/static/css/regular-questions.css">
 		<link rel="icon" href="/static/images/favicon.png">
 	</head>
@@ -127,7 +130,7 @@
 		</form>
 	</body>
 	<script>
-		const surveyPostUrl = "{{survey_post_url}}"
+		window.surveyPostUrl = "{{survey_post_url}}";
 	</script>
 	<script src="/static/js/regular-questions.js"></script>
 </html>

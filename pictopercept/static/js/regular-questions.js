@@ -1,40 +1,49 @@
-declare var surveyPostUrl: string;
+/**
+ * The target URL to post the survey against.
+ * @type {string}
+ */
+var surveyPostUrl = window.surveyPostUrl;
 
 document.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach((element, _) => {
 	if (element.id.endsWith("-other")) {
 		element.addEventListener("change", (e) => {
-			const otherInput = element.parentElement!.querySelector("input[type='text']");
+			const otherInput = element.parentElement?.querySelector("input[type='text']");
 			if (otherInput !== null) {
-				if ((element as HTMLInputElement).checked) {
-					(otherInput as HTMLElement).style.display = "";
+				if ((/** @type {HTMLInputElement} */(element)).checked) {
+					(/** @type {HTMLElement} */(otherInput)).style.display = ""
 				} else {
-					(otherInput as HTMLElement).style.display = "none";
+					(/** @type {HTMLElement} */(otherInput)).style.display = "none"
 				}
 			}
 		})
 	}
 })
 
-const form = document.querySelector("form.regular-question-form")!;
+const form = document.querySelector("form.regular-question-form");
+if (form === null)
+	throw new Error("This should not happen.")
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
-	const answers: Array<{
-		[key: string]: Array<number> | string | number | null
-	}> = Array();
+
+	/**
+	 * A list of answer map, whose value will be one of the four.
+	 * @type {{[key: string] : (number[] | string | number | null)}[]}
+	 */
+	const answers = [];
 
 	let hasErrors = false;
 	form.querySelectorAll(".error, .error2")?.forEach((element) => element.remove())
 
 	form.querySelectorAll(".question-group").forEach((question, questionIndex) => {
-		const questionType = question.getAttribute("question-type")!;
+		const questionType = /** @type {string} */ question.getAttribute("question-type");
 
 		switch (questionType) {
 			case "MultipleChoice": {
-				const checkedAnswers: Array<number> = new Array();
-				let otherAnswer: string | null = null;
+				const checkedAnswers = [];
+				let otherAnswer = null;
 				question.querySelectorAll(".content > ul > li > input[type='checkbox']:checked").forEach((checkbox) => {
 					if (checkbox.id.endsWith("-other")) {
-						otherAnswer = (question.querySelector(".content > ul > li > input[type='text']") as HTMLInputElement).value
+						otherAnswer = (/** @type {HTMLInputElement}*/ (question.querySelector(".content > ul > li > input[type='text']"))).value
 
 						if (otherAnswer.trim().length === 0) {
 							hasErrors = true;
@@ -61,12 +70,12 @@ form.addEventListener("submit", (e) => {
 				break;
 			}
 			case "SingleChoice": {
-				let checkedAnswer: number | null = null;
-				let otherAnswer: string | null = null;
+				let checkedAnswer = null;
+				let otherAnswer = null;
 				const checkedRadio = question.querySelector(".content > ul > li > input[type='radio']:checked");
 				if (checkedRadio !== null) {
 					if (checkedRadio.id.endsWith("-other")) {
-						otherAnswer = (question.querySelector(".content > ul > li > input[type='text']") as HTMLInputElement).value
+						otherAnswer = (/** @type {HTMLInputElement} */(question.querySelector(".content > ul > li > input[type='text']"))).value
 
 						if (otherAnswer.trim().length === 0) {
 							hasErrors = true;
@@ -92,7 +101,7 @@ form.addEventListener("submit", (e) => {
 				break;
 			}
 			case "Matrix": {
-				const rowAnswers = new Array<number>();
+				const rowAnswers = [];
 				let rowCount = question.querySelectorAll(".content tbody tr").length;
 
 				question.querySelectorAll(".content tbody tr").forEach((row, rowIndex) => {
@@ -117,7 +126,7 @@ form.addEventListener("submit", (e) => {
 				break;
 			}
 			case "AgreementScale": {
-				let checkedIndex: number | null = null;
+				let checkedIndex = null;
 
 				const checkedOption = question.querySelector(".content input[type='radio']:checked")
 				if (checkedOption !== null) {
@@ -137,7 +146,7 @@ form.addEventListener("submit", (e) => {
 				break;
 			}
 			case "OpenShort":
-				const answerText = (question.querySelector(".content input[type='text']") as HTMLInputElement).value
+				const answerText = (/** @type {HTMLInputElement} */(question.querySelector(".content input[type='text']"))).value
 
 				if (answerText.trim().length === 0) {
 					hasErrors = true;
@@ -171,7 +180,7 @@ form.addEventListener("submit", (e) => {
 			} else {
 				const errors = JSON.parse(text);
 				Object.entries(errors).forEach(([key, val]) => {
-					addError(Number(key), val as string)
+					addError(Number(key), val)
 				});
 			}
 		}).catch((reason) => {
@@ -180,19 +189,24 @@ form.addEventListener("submit", (e) => {
 	}
 })
 
-const addError = (questionIndex: number, text: string = "There is an error in this answer.") => {
+/**
+ * Adds an error to a question.
+ * @param {number} questionIndex - The index of the question to add the error to.
+ * @param {string} text - The error content. Optional.
+ */
+const addError = (questionIndex, text = "There is an error in this answer.") => {
 	const questionElement = form.querySelector(`#question-${questionIndex}`);
 	if (questionElement === null)
 		return;
 
-	const existingErrorMessage = questionElement.querySelector(".error");
+	const existingErrorMessage = /** @type {HTMLElement} */ (questionElement.querySelector(".error"));
 	if (existingErrorMessage === null) {
 		const errorMessage = document.createElement("div");
 		errorMessage.classList.add("error");
 		errorMessage.innerText = text;
-		questionElement.insertBefore(errorMessage, questionElement.querySelector(".content")!);
+		questionElement.insertBefore(errorMessage, questionElement.querySelector(".content"));
 	} else {
-		(existingErrorMessage as HTMLElement).innerText = text;
+		existingErrorMessage.innerText = text;
 	}
 
 	// Also add a message at the "Continue" button.
@@ -200,10 +214,14 @@ const addError = (questionIndex: number, text: string = "There is an error in th
 		const continueError = document.createElement("div");
 		continueError.classList.add("error2");
 		continueError.innerText = "There are one or more errors. Please check your answers carefully.";
-		form.insertBefore(continueError, form.querySelector("button")!);
+		form.insertBefore(continueError, form.querySelector("button"));
 	}
 }
 
-const removeError = (questionIndex: number) => {
+/**
+ * Removes the error of a question, if exists.
+ * @param {number} questionIndex - The index of the question to remove the error from.
+ */
+const removeError = (questionIndex) => {
 	form.querySelector(`#question-${questionIndex}`)?.querySelector(".error")?.remove()
 }

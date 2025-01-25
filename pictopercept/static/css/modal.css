@@ -1,0 +1,31 @@
+.modal-outer {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.modal-outer .modal {
+	background: #000;
+	color: white;
+	min-width: 400px;
+	max-width: 600px;
+	min-height: 100px;
+	z-index: 0;
+	border-radius: 5px;
+	padding: 20px;
+}
+.modal-outer .modal>.title {
+	font-weight: bold;
+	font-size: 20px;
+}
+.modal-outer .modal>.body {
+	padding: 15px 0;
+}
+.modal-outer .modal>.buttons>button {
+	margin-right: 10px;
+}
