@@ -10,3 +10,9 @@
 
     - name: Set FETCH_PASSWORD environment variable
       ansible.builtin.shell: echo 'export FETCH_PASSWORD="{{ FETCH_PASSWORD }}"' >> /etc/environment
+
+    - name: Set DATABASE_PATH environment variable
+      ansible.builtin.shell: echo 'export DATABASE_PATH="{{ DATABASE_PATH }}"' >> /etc/environment
+
+    - name: Set CFD_DATASET_PATH environment variable
+      ansible.builtin.shell: echo 'export CFD_DATASET_PATH="{{ CFD_DATASET_PATH }}"' >> /etc/environment

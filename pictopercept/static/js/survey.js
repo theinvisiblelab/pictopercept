@@ -37,6 +37,7 @@ var surveyPostUrl = window.surveyPostUrl;
 /**
  * @typedef {Object} Answer
  * @property {[AnswerImage, AnswerImage]} images - The pairs of selected answers.
+ * @property {number} seconds_taken - The amount of seconds (as float) that the user took to answer.
  */
 
 /**
@@ -69,6 +70,13 @@ class Survey {
 	 * @readonly
 	*/
 	#surveyTimer = new Timer();
+
+	/**
+	 * The timer of the current question.
+	 * @type {Timer}
+	 * @readonly
+	*/
+	#questionTimer = new Timer();
 
 	/**
 	 * The TimeBar that will be used on each pair. If null, then the current survey is not using a TimeBar.
@@ -189,7 +197,8 @@ class Survey {
 					image: imageSurvey.pair_questions[this.#answerIndex].images[1],
 					chosen: option == 1
 				}
-			]
+			],
+			seconds_taken: this.#questionTimer.getSecondsPassed(),
 		})
 
 		if (this.#timeBar) {
@@ -245,6 +254,7 @@ class Survey {
 				if (this.#currentQuestion !== null)
 					this.#domElements.question.innerHTML = this.#currentQuestion;
 
+				this.#questionTimer.start();
 				this.#timeBar?.start();
 				if (!this.#surveyTimer.isInitialized()) this.#surveyTimer.start();
 
@@ -273,8 +283,9 @@ class Survey {
 		// Remove error modal if any
 		document.querySelector(".modal-outer")?.remove();
 
-		this.#domElements.question.innerText = "Thank you!";
-		this.#domElements.question.style.paddingBottom = "10px";
+		this.#domElements.question.innerText = "Loading...";
+		this.#domElements.question.style.paddingBottom = "0";
+		this.#domElements.question.style.opacity = "0.3";
 		this.#domElements.options.remove()
 
 		if (this.#timeBar) {

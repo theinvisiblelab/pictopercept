@@ -46,7 +46,7 @@ form.image-form>.options>.option:hover {
 form.image-form>.options>.option>img {
 	width: 330px;
 	height: 330px;
-	background: #000;
+	background: transparent;
 	object-fit: cover;
 	border-radius: 5px;
 }

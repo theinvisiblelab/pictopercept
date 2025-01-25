@@ -11,6 +11,9 @@ class RegularQuestion(metaclass=ABCMeta):
     @abstractmethod
     def validate(self, answer) -> Dict | str: pass
 
+    @abstractmethod
+    def replace_indices_with_strings(self,  question_answer): pass
+
 @dataclass
 class MultipleChoice(RegularQuestion):
     @property
@@ -43,6 +46,10 @@ class MultipleChoice(RegularQuestion):
 
         return clean_answer
 
+    def replace_indices_with_strings(self, question_answer):
+        for i in range(len(question_answer["checked_answers"])):
+            question_answer["checked_answers"][i] = self.options[question_answer["checked_answers"][i]]
+
 @dataclass
 class SingleChoice(RegularQuestion):
     @property
@@ -74,6 +81,8 @@ class SingleChoice(RegularQuestion):
                     "checked_answer": None,
                     "other_answer": answer["otherAnswer"]
                 }
+    def replace_indices_with_strings(self, question_answer):
+        question_answer["checked_answer"] = self.options[question_answer["checked_answer"]]
 
 
 @dataclass
@@ -104,6 +113,9 @@ class Matrix(RegularQuestion):
 
         return clean_answer
 
+    def replace_indices_with_strings(self, question_answer):
+        pass
+
 @dataclass
 class AgreementScale(RegularQuestion):
     @property
@@ -129,6 +141,22 @@ class AgreementScale(RegularQuestion):
             "checked_answer": int(chosenIndex)
         }
 
+    def replace_indices_with_strings(self, question_answer):
+        agreement_val = ""
+        match question_answer["checked_answer"]:
+            case 0:
+                agreement_val = "Strongly disagree"
+            case 1:
+                agreement_val = "Disagree"
+            case 2:
+                agreement_val = "Neutral"
+            case 3:
+                agreement_val = "Agree"
+            case 4:
+                agreement_val = "Strongly agree"
+
+        question_answer["checked_answer"] = agreement_val
+
 @dataclass
 class OpenShort(RegularQuestion):
     @property
@@ -146,3 +174,6 @@ class OpenShort(RegularQuestion):
             "answer_text" : answerText
         }
         return clean_answer
+
+    def replace_indices_with_strings(self, question_answer):
+        pass

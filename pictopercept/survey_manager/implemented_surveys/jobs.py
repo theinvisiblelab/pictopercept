@@ -28,7 +28,7 @@ class JobsSurvey(common_types.BaseSurvey):
 
     @property
     def duration_seconds(self) -> Optional[int]:
-        return 60
+        return 5
 
     @property
     def dataset_path(self) -> str:
@@ -114,7 +114,7 @@ class JobsSurvey(common_types.BaseSurvey):
             question_text = f"Who of these is {job}?"
             final_pairs.append(common_types.PairQuestion((survey_images[i], survey_images[i+1]), question_text))
 
-        # Select 6 random pairs, flip them and add them
+        # Select 6 random pairs as attention checks, flip them and add them
         repeated_pairs = np.random.choice(final_pairs, 6, replace=False)
         for rp in repeated_pairs:
             flipped_pair = (rp.images[1], rp.images[0])
@@ -122,23 +122,11 @@ class JobsSurvey(common_types.BaseSurvey):
 
         np.random.shuffle(final_pairs)
 
-        # Shuffle pairs, and save both indices of pairs that are
-        # repeated.This is needed because we don't know their new
-        # indices.
-        attention_checks = []
-        for i in range(len(final_pairs)):
-            flipped_images = (final_pairs[i].images[1], final_pairs[i].images[0])
-            for j in range(i+1, len(final_pairs)):
-                if final_pairs[j].images[0] == flipped_images[0] and final_pairs[j].images[1] == flipped_images[1]:
-                    attention_checks.append((i, j))
-
         time_bar_duration = None
         if self.answer_timer.should_use():
             time_bar_duration = self.answer_timer.duration
 
-        logging.getLogger(__name__).warning(f"[INFO] Attention checks: {attention_checks}")
-
-        return common_types.GeneratedImageSurvey(final_pairs, attention_checks, time_bar_duration, self.duration_seconds, self.dataset_path, self.accent_color)
+        return common_types.GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.dataset_path, self.accent_color)
     
     def generate_regular_survey(self) -> common_types.GeneratedRegularSurvey:
         regular_questions = self.regular_questions
