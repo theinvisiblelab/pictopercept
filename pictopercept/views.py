@@ -156,7 +156,6 @@ def get_cfd_image(answer_index, side):
     if index < 0 or index >= len(session["generated_survey"]["pair_questions"]):
         abort(404);
 
-    logging.getLogger(__name__).warning(f"Dataset path: {session["generated_survey"]["dataset_path"]}")
     image_path = os.path.abspath(f'{session["generated_survey"]["dataset_path"]}/{session["generated_survey"]["pair_questions"][index]["images"][side]}')
     if not os.path.exists(image_path):
         abort(404)
