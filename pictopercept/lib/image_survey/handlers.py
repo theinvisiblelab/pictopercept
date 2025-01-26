@@ -7,15 +7,15 @@ from flask import Request, Response, make_response, render_template, session
 from pydantic import BaseModel, Field
 
 from pictopercept.db import db_save_image_survey
-from pictopercept.survey_manager import common_types
+from pictopercept.lib.common_types import BaseSurvey
 
-def get_handler(survey: common_types.BaseSurvey, current_step: str):
+def get_handler(survey: BaseSurvey, current_step: str):
     generated_survey = survey.generate_image_survey()
     
     session["generated_survey"] = generated_survey;
 
     generated_survey_json = asdict(generated_survey)
-    generated_survey_json.pop("dataset_path")
+    generated_survey_json.pop("dataset_folder_name")
     
     return render_template("survey.html", **{
         "generated_survey": generated_survey, # Used by our Python template
@@ -23,7 +23,7 @@ def get_handler(survey: common_types.BaseSurvey, current_step: str):
         "survey_post_url": f"/survey/{survey.identifier}/{current_step}", # Used by JavaScript
     })
 
-def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response | None:
+def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
     # Answer class gotten from Frontend-POST
     class Answer(BaseModel):
         class Image(BaseModel):

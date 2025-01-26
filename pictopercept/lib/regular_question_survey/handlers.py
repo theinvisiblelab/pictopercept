@@ -4,16 +4,16 @@ import logging
 from flask import Request, Response, make_response, render_template, session
 
 from pictopercept.db import db_save_question_survey
-from pictopercept.survey_manager import common_types
+from pictopercept.lib.common_types import BaseSurvey
 
-def get_handler(survey: common_types.BaseSurvey, current_step: str):
+def get_handler(survey: BaseSurvey, current_step: str):
     return render_template("regular_questions.html", ** {
         "accent_color": f"--accent_color:#ff4b4b",
         "questions": survey.generate_regular_survey().questions,
         "survey_post_url": f"/survey/{survey.identifier}/{current_step}",
     })
 
-def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response | None:
+def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
     data = request.get_json()
 
     if len(survey.regular_questions) is not len(data):
@@ -30,10 +30,16 @@ def post_handler(request: Request, survey: common_types.BaseSurvey) -> Response 
                 errors[str(i)] = result
                 continue;
 
+            result["kind"] = question.kind
             clean_answers.append(result)
 
         if len(errors) == 0:
             try:
+                final_data =  json.dumps({
+                    "userId": session["user_id"],
+                    "answers": clean_answers
+                })
+                logging.getLogger(__name__).warning(f"Size in bytes: {len(final_data)}")
                 db_save_question_survey({
                     "userId": session["user_id"],
                     "answers": clean_answers

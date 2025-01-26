@@ -1,14 +1,13 @@
 import json
-from flask import abort
-from pymongo import MongoClient
 from os import environ
 import logging
 import errno
 import mongomock
 
-from pictopercept import survey_manager
-from pictopercept.survey_manager import survey_loader
-from pictopercept.survey_manager.regular_question_types import MultipleChoice
+from flask import abort
+from pymongo import MongoClient
+
+from pictopercept.lib.survey_manager import get_survey
 
 client = None
 
@@ -50,9 +49,7 @@ def db_query_all(table_name, chunk_size: int):
     first_result = True
 
     if client is not None:
-        survey = survey_loader.get_survey(table_name)
-
-        if survey is None:
+        if get_survey(table_name) is None:
             abort(404)
 
         yield '{"data": ['
@@ -84,20 +81,11 @@ def db_query_all(table_name, chunk_size: int):
                 if len(result["image_answers"]) == 0:
                     continue
 
-                # Replace the MultipleChoice, SingleChoice and AgreementScale indices their string values.
-                for answer, question in zip(result["answers"], survey.regular_questions):
-                    try:
-                        question.replace_indices_with_strings(answer)
-                    except:
-                        answer["note"] = "There was an error replacing the indices with strings in this question. Has the type changed?"
-                        pass
-                    answer["question_type"] = question.kind
-
-
                 # Remove MongoDB id object
                 result.pop("_id")
                 for image_answer in result["image_answers"]:
                     image_answer.pop("_id")
+                    image_answer.pop("userId") # Not needed, as the parent object itself already has it
 
                 out += json.dumps(result)
                 yield out

@@ -24,10 +24,10 @@ services:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
       - FETCH_PASSWORD=${FETCH_PASSWORD}
       - DATABASE_PATH=${DATABASE_PATH}
-      - CFD_DATASET_PATH=${CFD_DATASET_PATH}
+      - DATASETS_PATH=${DATASETS_PATH}
     volumes:
       - ./:/app
-      - cfd_dataset:${CFD_DATASET_PATH}
+      - datasets:${DATASETS_PATH}
     depends_on:
       -  mongo  
 
@@ -43,9 +43,9 @@ volumes:
       type: 'none'
       o: 'bind'
       device: '${DATABASE_PATH}'
-  cfd_dataset:
+  datasets:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '${CFD_DATASET_PATH}'
+      device: '${DATASETS_PATH}'

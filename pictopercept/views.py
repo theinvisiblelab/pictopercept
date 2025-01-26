@@ -1,17 +1,19 @@
 import json
 import os
-from numpy import random
 import uuid
-from flask import Blueprint, abort, make_response, render_template, request, send_file, session 
 import logging
 
-from pictopercept.db import db_query_all
-from pictopercept.survey_manager import common_types, survey_loader
-import pictopercept.regular_question_survey.views as regular_question_views
-import pictopercept.image_survey.views as image_views
+from flask import Blueprint, abort, make_response, render_template, request, send_file, session 
+from numpy import random
 
-def get_survey_or_404(id) -> common_types.BaseSurvey:
-    survey = survey_loader.get_survey(id)
+from pictopercept.db import db_query_all
+from pictopercept.lib.common_types import BaseSurvey
+from pictopercept.lib.survey_manager import get_survey, get_surveys
+import pictopercept.lib.image_survey.handlers as image_handlers
+import pictopercept.lib.regular_question_survey.handlers as regular_question_handlers
+
+def get_survey_or_404(id) -> BaseSurvey:
+    survey = get_survey(id)
     if survey is None:
         abort(404, "The survey was not found, or it is not enabled.")
     return survey
@@ -22,7 +24,7 @@ main_routes = Blueprint('main', __name__)
 @main_routes.route("/", methods=['GET'])
 def index():
     content = "<h3>This is a temporal index. Select one survey:</h3><ul>"
-    for key in survey_loader.get_surveys().keys():
+    for key in get_surveys().keys():
         content += f"<li>Survey of {key}, <a href='/survey/{key}'>here</a></li>"
     content += "</ul>"
 
@@ -71,9 +73,9 @@ def survey_step_get(id, step):
             return make_response(f"It seems you haven't completed the survey's step one.. You can start again the survey <a href=\"/survey/{id}/1\">here</a>.", 400)
 
     if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
-        return regular_question_views.get_handler(survey, step)
+        return regular_question_handlers.get_handler(survey, step)
     else:
-        return image_views.get_handler(survey, step)
+        return image_handlers.get_handler(survey, step)
 
 @main_routes.route("/survey/<id>/<step>", methods=['POST'])
 def survey_step_post(id, step):
@@ -93,9 +95,9 @@ def survey_step_post(id, step):
         return make_response("Cannot post data to step two without completing step one.", 400)
 
     if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
-        error_response = regular_question_views.post_handler(request, survey)
+        error_response = regular_question_handlers.post_handler(request, survey)
     else:
-        error_response = image_views.post_handler(request, survey)
+        error_response = image_handlers.post_handler(request, survey)
 
     if error_response is None:
         if step == "1":
@@ -130,7 +132,7 @@ def fetch_data():
         return make_response("Forbidden.", 403)
 
     survey_name = arguments["survey_name"]
-    if survey_name not in survey_loader.get_surveys():
+    if survey_name not in get_surveys():
         return make_response("Survey not found.", 404)
 
     chunk_size = 100
@@ -143,6 +145,7 @@ def fetch_data():
         "filename": "data.json"
     }
 
+DATASETS_PATH = os.environ.get("DATASETS_PATH", "/data/datasets")
 @main_routes.route("/img/<answer_index>/<side>", methods=['GET'])
 def get_cfd_image(answer_index, side):
     if session.get("generated_survey") is None:
@@ -156,7 +159,7 @@ def get_cfd_image(answer_index, side):
     if index < 0 or index >= len(session["generated_survey"]["pair_questions"]):
         abort(404);
 
-    image_path = os.path.abspath(f'{session["generated_survey"]["dataset_path"]}/{session["generated_survey"]["pair_questions"][index]["images"][side]}')
+    image_path = os.path.abspath(f'{DATASETS_PATH}/{session["generated_survey"]["dataset_folder_name"]}/{session["generated_survey"]["pair_questions"][index]["images"][side]}')
     if not os.path.exists(image_path):
         abort(404)
 

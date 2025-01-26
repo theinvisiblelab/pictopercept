@@ -5,11 +5,12 @@ from typing import List, Optional, final
 import numpy as np
 import pandas as pd
 
-from pictopercept.survey_manager import common_types
-from pictopercept.survey_manager import regular_question_types
+from pictopercept.lib.common_types import BaseSurvey, GeneratedImageSurvey, GeneratedRegularSurvey
+from pictopercept.lib.image_survey.types import AnswerTimer, AnswerTimerMode, PairQuestion
+from pictopercept.lib.regular_question_survey.types import RegularQuestion, AgreementScale, Matrix, MultipleChoice, OpenShort
 
 @final
-class JobsSurvey(common_types.BaseSurvey):
+class JobsSurvey(BaseSurvey):
     @property
     def identifier(self) -> str:
         return "jobs"
@@ -23,21 +24,21 @@ class JobsSurvey(common_types.BaseSurvey):
         return "#ff4b4b"
 
     @property
-    def answer_timer(self) -> common_types.AnswerTimer:
-        return common_types.AnswerTimer(common_types.AnswerTimerMode.random, 6)
+    def answer_timer(self) -> AnswerTimer:
+        return AnswerTimer(AnswerTimerMode.random, 6)
 
     @property
     def duration_seconds(self) -> Optional[int]:
-        return 5
+        return 180
 
     @property
-    def dataset_path(self) -> str:
-        return os.environ.get("CFD_DATASET_PATH", "")
+    def dataset_folder_name(self) -> str:
+        return "chicago_face_dataset"
 
     @property
-    def regular_questions(self) -> List[regular_question_types.RegularQuestion]:
+    def regular_questions(self) -> List[RegularQuestion]:
         return [
-            regular_question_types.MultipleChoice("Which of the following best describes your primary occupational status?", True, [
+            MultipleChoice("Which of the following best describes your primary occupational status?", True, [
                 "Employed (full-time)",
                 "Employed (part-time)",
                 "Self-employed",
@@ -45,30 +46,30 @@ class JobsSurvey(common_types.BaseSurvey):
                 "Retired",
                 "Student"
             ]),
-            regular_question_types.Matrix("How familiar are you with each of the following occupations based on personal experience or people you know? (1 = Not at all familiar; 5 = Extremely familiar)", [
+            Matrix("How familiar are you with each of the following occupations based on personal experience or people you know? (1 = Not at all familiar; 5 = Extremely familiar)", [
                 "Teacher",
                 "Doctor",
                 "Plumber"
             ]),
-            regular_question_types.MultipleChoice("How often do you consume TV shows, movies, social media, or news that depict various occupations (e.g., in dramas, documentaries, social media content)?", False, [
+            MultipleChoice("How often do you consume TV shows, movies, social media, or news that depict various occupations (e.g., in dramas, documentaries, social media content)?", False, [
                 "Never",
                 "Rarely (less than once a week)",
                 "Sometimes (1-3 times a week)",
                 "Often (4-6 times a week)",
                 "Very often (daily)"
             ]),
-            regular_question_types.AgreementScale("Media portrayals generally provide realistic depictions of different occupations."),
-            regular_question_types.AgreementScale("I notice stereotypes about certain jobs when I watch TV shows or movies."),
-            regular_question_types.AgreementScale("It is easy to guess someone’s occupation just by looking at them."),
-            regular_question_types.AgreementScale("I believe stereotypes about occupations exist for a reason (i.e., there is some truth to them)."),
-            regular_question_types.AgreementScale("Even if I notice stereotypes, I try not to let them influence my judgment."),
-            regular_question_types.AgreementScale("When answering surveys, I try to provide responses that I believe are more socially acceptable, even if they don’t perfectly reflect my true feelings."),
-            regular_question_types.MultipleChoice("In my workplace or daily social environment, I frequently interact with people from diverse backgrounds (e.g., different races, genders, or cultures).", False, [
+            AgreementScale("Media portrayals generally provide realistic depictions of different occupations."),
+            AgreementScale("I notice stereotypes about certain jobs when I watch TV shows or movies."),
+            AgreementScale("It is easy to guess someone’s occupation just by looking at them."),
+            AgreementScale("I believe stereotypes about occupations exist for a reason (i.e., there is some truth to them)."),
+            AgreementScale("Even if I notice stereotypes, I try not to let them influence my judgment."),
+            AgreementScale("When answering surveys, I try to provide responses that I believe are more socially acceptable, even if they don’t perfectly reflect my true feelings."),
+            MultipleChoice("In my workplace or daily social environment, I frequently interact with people from diverse backgrounds (e.g., different races, genders, or cultures).", False, [
                 "Different races",
                 "Different genders",
                 "Different cultures"
             ]),
-            regular_question_types.OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?")
+            OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?", 8, 50)
         ]
 
     cfd_dataset: pd.DataFrame
@@ -101,7 +102,7 @@ class JobsSurvey(common_types.BaseSurvey):
         return generated_jobs.flatten().tolist()[0]
 
 
-    def generate_image_survey(self) -> common_types.GeneratedImageSurvey:
+    def generate_image_survey(self) -> GeneratedImageSurvey:
         desired_pair_count = 64
         survey_images = self.cfd_dataset["file"].sample(desired_pair_count * 2).tolist()
         generated_jobs = self.generate_question_text()
@@ -112,13 +113,13 @@ class JobsSurvey(common_types.BaseSurvey):
         final_pairs = []
         for i, job in zip(range(0, image_count, 2), generated_jobs):
             question_text = f"Who of these is {job}?"
-            final_pairs.append(common_types.PairQuestion((survey_images[i], survey_images[i+1]), question_text))
+            final_pairs.append(PairQuestion((survey_images[i], survey_images[i+1]), question_text))
 
         # Select 6 random pairs as attention checks, flip them and add them
         repeated_pairs = np.random.choice(final_pairs, 6, replace=False)
         for rp in repeated_pairs:
             flipped_pair = (rp.images[1], rp.images[0])
-            final_pairs.append(common_types.PairQuestion(flipped_pair, rp.text))
+            final_pairs.append(PairQuestion(flipped_pair, rp.text))
 
         np.random.shuffle(final_pairs)
 
@@ -126,8 +127,8 @@ class JobsSurvey(common_types.BaseSurvey):
         if self.answer_timer.should_use():
             time_bar_duration = self.answer_timer.duration
 
-        return common_types.GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.dataset_path, self.accent_color)
+        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.dataset_folder_name, self.accent_color)
     
-    def generate_regular_survey(self) -> common_types.GeneratedRegularSurvey:
+    def generate_regular_survey(self) -> GeneratedRegularSurvey:
         regular_questions = self.regular_questions
-        return common_types.GeneratedRegularSurvey(regular_questions)
+        return GeneratedRegularSurvey(regular_questions)

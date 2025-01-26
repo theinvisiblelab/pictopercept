@@ -1,48 +1,21 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
-from numpy import random
-
-from pictopercept.survey_manager import regular_question_types
-
-
-class AnswerTimerMode(Enum):
-    on = 0
-    off = 1
-    random = 2
-
-@dataclass
-class AnswerTimer:
-    mode: AnswerTimerMode
-    duration: int
-
-    def should_use(self) -> bool:
-        match self.mode:
-            case AnswerTimerMode.on:
-                return True
-            case AnswerTimerMode.off:
-                return False
-            case AnswerTimerMode.random:
-                return random.choice([True, False])
-
-@dataclass
-class PairQuestion:
-    images: Tuple[str, str]
-    text: str
+from pictopercept.lib.regular_question_survey.types import RegularQuestion
+from pictopercept.lib.image_survey.types import AnswerTimer, PairQuestion
 
 @dataclass
 class GeneratedImageSurvey:
     pair_questions: List[PairQuestion]
     time_bar_duration: Optional[int]
     duration_seconds: Optional[int]
-    dataset_path: str
+    dataset_folder_name: str
     accent_color: str
 
 @dataclass
 class GeneratedRegularSurvey:
-    questions: List[regular_question_types.RegularQuestion]
+    questions: List[RegularQuestion]
 
 
 class BaseSurvey(metaclass=ABCMeta):
@@ -69,11 +42,11 @@ class BaseSurvey(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def dataset_path(self) -> str: pass
+    def dataset_folder_name(self) -> str: pass
 
     @property
     @abstractmethod
-    def regular_questions(self) -> List[regular_question_types.RegularQuestion]: pass
+    def regular_questions(self) -> List[RegularQuestion]: pass
 
 
     # Mandatory methods of each Survey

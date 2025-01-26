@@ -11,9 +11,6 @@ class RegularQuestion(metaclass=ABCMeta):
     @abstractmethod
     def validate(self, answer) -> Dict | str: pass
 
-    @abstractmethod
-    def replace_indices_with_strings(self,  question_answer): pass
-
 @dataclass
 class MultipleChoice(RegularQuestion):
     @property
@@ -23,6 +20,8 @@ class MultipleChoice(RegularQuestion):
     title: str
     other_enabled: bool
     options: List[str]
+    min_other_len :int = 3
+    max_other_len :int = 20
 
     def validate(self, answer) -> Dict | str:
         if len(answer["checkedAnswers"]) == 0 and answer["otherAnswer"] is None:
@@ -33,22 +32,23 @@ class MultipleChoice(RegularQuestion):
             "other_answer": None,
         }
 
-        for chosenIndex in answer["checkedAnswers"]:
-            if int(chosenIndex) < 0 or int(chosenIndex) >= len(self.options):
+        for chosen_index in answer["checkedAnswers"]:
+            if int(chosen_index) < 0 or int(chosen_index) >= len(self.options):
                 raise Exception("")
-            clean_answer["checked_answers"].append(int(chosenIndex))
+            clean_answer["checked_answers"].append(self.options[chosen_index])
 
         if answer["otherAnswer"] is not None:
-            if len(answer["otherAnswer"].strip()) == 0:
+            answer_text = answer["otherAnswer"].strip()
+            answer_len = len(answer_text)
+
+            if answer_len == 0:
                 return "You must fill the \"other\" text field if you selected it."
+            elif answer_len < self.min_other_len or answer_len > self.max_other_len:
+                return f"Your \"other\" answer must be between {self.min_other_len}-{self.max_other_len} characters length."
             else:
                 clean_answer["other_answer"] = answer["otherAnswer"]
 
         return clean_answer
-
-    def replace_indices_with_strings(self, question_answer):
-        for i in range(len(question_answer["checked_answers"])):
-            question_answer["checked_answers"][i] = self.options[question_answer["checked_answers"][i]]
 
 @dataclass
 class SingleChoice(RegularQuestion):
@@ -65,25 +65,24 @@ class SingleChoice(RegularQuestion):
             return "You must check one option."
 
         if answer["checkedAnswer"] is not None:
-            chosenIndex = answer["checkedAnswer"]
-            if int(chosenIndex) < 0 or int(chosenIndex) >= len(self.options):
+            chosen_index = answer["checkedAnswer"]
+            if int(chosen_index) < 0 or int(chosen_index) >= len(self.options):
                 raise Exception("")
 
             return {
-                "checked_answer": int(chosenIndex),
+                "checked_answer": self.options[chosen_index],
                 "other_answer": None,
             }
         else:
             if len(answer["otherAnswer"].strip()) == 0:
                 return "You must fill the \"other\" text field if you selected it."
+            elif len(answer["otherAnswer"].strip()) < 3 or len(answer["otherAnswer"].strip()) > 20:
+                return "Your \"other\" answer must be between 3-20 characters length."
             else:
                 return {
                     "checked_answer": None,
                     "other_answer": answer["otherAnswer"]
                 }
-    def replace_indices_with_strings(self, question_answer):
-        question_answer["checked_answer"] = self.options[question_answer["checked_answer"]]
-
 
 @dataclass
 class Matrix(RegularQuestion):
@@ -106,15 +105,12 @@ class Matrix(RegularQuestion):
         MATRIX_MIN = 0
         MATRIX_MAX = 4
         
-        for chosenIndex in answer["checkedAnswers"]:
-            if int(chosenIndex) < MATRIX_MIN or int(chosenIndex) > MATRIX_MAX:
+        for chosen_index in answer["checkedAnswers"]:
+            if int(chosen_index) < MATRIX_MIN or int(chosen_index) > MATRIX_MAX:
                 raise Exception("")
-            clean_answer["checked_answers"].append(int(chosenIndex))
+            clean_answer["checked_answers"].append(int(chosen_index))
 
         return clean_answer
-
-    def replace_indices_with_strings(self, question_answer):
-        pass
 
 @dataclass
 class AgreementScale(RegularQuestion):
@@ -132,30 +128,28 @@ class AgreementScale(RegularQuestion):
         AGREEMENT_MIN = 0
         AGREEMENT_MAX = 4
         
-        chosenIndex = answer["checkedAnswer"]
+        chosen_index = answer["checkedAnswer"]
         
-        if int(chosenIndex) < AGREEMENT_MIN or int(chosenIndex) > AGREEMENT_MAX:
+        if int(chosen_index) < AGREEMENT_MIN or int(chosen_index) > AGREEMENT_MAX:
             raise Exception("")
         
         return {
-            "checked_answer": int(chosenIndex)
+            "checked_answer": self.agreement_value_as_string(chosen_index)
         }
 
-    def replace_indices_with_strings(self, question_answer):
-        agreement_val = ""
-        match question_answer["checked_answer"]:
+    def agreement_value_as_string(self, value : int):
+        match value:
             case 0:
-                agreement_val = "Strongly disagree"
+                return "Strongly disagree"
             case 1:
-                agreement_val = "Disagree"
+                return "Disagree"
             case 2:
-                agreement_val = "Neutral"
+                return "Neutral"
             case 3:
-                agreement_val = "Agree"
+                return "Agree"
             case 4:
-                agreement_val = "Strongly agree"
-
-        question_answer["checked_answer"] = agreement_val
+                return "Strongly agree"
+        return "Unknown value"
 
 @dataclass
 class OpenShort(RegularQuestion):
@@ -164,16 +158,18 @@ class OpenShort(RegularQuestion):
         return "OpenShort"
 
     title: str
+    min_len: int
+    max_len: int
 
     def validate(self, answer) -> Dict | str:
-        answerText = answer["answerText"].strip()
-        if len(answerText) == 0:
+        answer_text = answer["answerText"].strip()
+        answer_len = len(answer_text)
+        if answer_len == 0:
             return "You must answer this question."
+        elif answer_len < self.min_len or answer_len > self.max_len:
+            return f"Your answer must be between {self.min_len}-{self.max_len} characters length."
         
         clean_answer = {
-            "answer_text" : answerText
+            "answer_text" : answer_text
         }
         return clean_answer
-
-    def replace_indices_with_strings(self, question_answer):
-        pass
