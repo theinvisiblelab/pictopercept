@@ -1,19 +1,15 @@
 # pictopercept
 
-## Requirements
-- **Python** >= `3.11.4`
-- **node** >= `22.11.0`
-
 ## Project structure
-- `pictopercept` -> Holds the web/Flask's python backend code, such as the `views.py` and `urls.py`, that define the routes and what gets shown. Inside also resides the `surveys.json` file.
+- `pictopercept` -> Holds the web/Flask's python backend code, such as the `views.py` and `db.py`, that define the routes and what gets shown.
 - `pictopercept/templates` -> Where all the **HTML** files are located, which are the final web pages that the user will see. They use basic *Flask/Jinja2* templating, to pass variables from *Python* to them.
-- `pictopercept/static` -> Holds the static files such as fonts, images, and later the compiled `static-src` files.
-- `pictopercept/surveys.json` -> Where the active survey list reside. Check the structure inside `pictopercept/survey.py` python class. (currently, the default one is `jobs` survey, but this can be easily changed to point via url in the future (e.g. `pictopercept.ai/survey/<survey-id>`).
-- `static-src` -> Here, all the front-end **SASS** styling and **TypeScript** code resides. When building the project, these files will transpile to pure **CSS** and **JavaScript**, which is needed for browsers.
+- `pictopercept/static` -> Holds the static files such as `JavaScript` and `CSS` code, fonts and images.
+- `pictopercept/lib` -> A custom library that defines custom types and default survey handlers to make defining new surveys easier.
+- `pictopercept/surveys` -> Here is where you should place all the custom surveys to show in the website. You can view the base survey definition at `pictopercept/lib/common_types.py` to view all the needed attributes and functions to implement per survey.
 
 ## Developing
-Install the tools defined in [requirements](#requirements).
-### Python environment
+First, make sure to check [Environment Variables](#environment-variables) and [Storage and Database](#storage-and-database) to setup everything properly.
+
 It is recommended to use some sort of virtual environment, such as `venv` (there are other alternatives such as *pipenv* or *conda*), which will help get and manage the correct versions of python-related libraries:
 ```
 python3 -m venv .venv
@@ -26,43 +22,40 @@ Once done, you can execute the following to install all the python dependencies:
 ```
 pip3 install -r requirements.txt
 ```
-To manually run the server, you can run:
+Then, run the server using:
 ```
 flask run --debug
 ```
-but it is recommended to execute it via `npm run watch` command, which it's explained in the following section, [Npm/Node-basic-setup](#npmnode-basic-setup)
+This command will start the local website in the port 5000. You can visit [http://localhost:5000](http://localhost:5000) in your browser to view it.
 
-### Npm/node basic setup
-Then, while being at the project root, the first time you should run:
-```
-npm install
-```
-Which will install all the node-related dependencies (that is, the needed libraries to transpile the `static` files).
+## Environment Variables
+There is a provided `.env.example` where you can view all the env variables used by our program.
+This are:
+- `FLASK_SECRET_KEY`: A random hex key that Flask will use to encrypt session data into the cookies.
+- `FETCH_PASSWORD`: A random hex key to use that is needed to fetch all the survey data (such as user answers).
+- `MONGODB_URI`, `DATABASE_PATH` and `DATASETS_PATH`: Please check [Storage and Database](#storage-and-database)
 
-Then, you just need to run:
-```
-npm run watch
-```
-This command will:
-- Transpile on each `static-src` file change all the **SASS** and **TypeScript** code into the `static` folder.
-- Run the Python/Flask server on port **5000**, in **Debug** mode.
+## Storage and Database
+### Deployed on Surf SRAM
+When Pictopercept is deployed in **SURF SRAM**, it uses two attached storages named `db` and `pictopercept_datasets`, which are attached in the server's `/data/db/` and `/data/pictopercept_datasets/`, respectively.
+It will also use the `mongo` service that is defined in the [docker-compose.yml](./docker-compose.yml) file.
 
-> [!NOTE]
-> Your `print` statements might not be visible while using `npm run watch`. To make them visible, use the logger instead of `print`:
-> ```python
->  logging.getLogger(__name__).debug("Your message goes here."); # .debug(), .warning(), .error() and .critical() are other alternatives.
-> ```
-> or just execute the server manually via `flask run` command, which would also output `print` statements.
+Because of this, the ENV used by the deployment (appart from the secret keys) will just be:
+- `MONGODB_URI`: `mongo:27017`
+- `DATABASE_PATH`: `/data/db`
+- `DATASETS_PATH`: `/data/pictopercept_datasets`
 
+### Developing locally
+#### Database
+When developing Pictopercept locally, we need some extra external services such as MongoDB running and a dataset folder. There are two recommended options:
 
-## Building
-Make sure you are able to reproduce the [Developing](#developing). Then, once dependencies are installed via `npm install`, you just need to run:
-`npm run build`.
+##### In memory via `mongomock` (non-persistent)
+You can also pass the flag `-debug` when opening the server (via `flask run --debug`) to use the in-memory database. However, this is not persistent, and MongoDB mock service will restart on each `flask` run/update.
 
-## Dockerfile
-## Dockerfile/Deploying
-TBD
+##### MongoDB using Docker service (persistent locally)
+One easy way would just be using the Docker Compose service's MongoDB locally. To do this, you can run it and just set the `MONGODB_URI` to `mongodb://localhost:27017/`.
 
-You need to pass the environment variable `MONGODB_URI` when running the image. It should be:
-- When developing: A URL to a MongoDB Atlas when developing (or your local one).
-- When deployed: The local URL of the compose service (probably, `mongo:27017`).
+#### Database and Dataset folders
+You will need to create two folders wherever you want and point both envs to those folders (`DATABASE_PATH` and `DATASETS_PATH`).
+
+However, the datasets folder must contain the right folders/images depending on how the jobs are configured. This will be explained in the future/via a private dataset repository.
