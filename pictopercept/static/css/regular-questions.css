@@ -71,7 +71,7 @@ form.regular-question-form {
 	padding: 30px;
 	background-color: #fff;
 	border-radius: 5px;
-	max-width: 800px;
+	max-width: min(calc(100dvw - 100px), 800px);
 	box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
 }
 
@@ -90,8 +90,7 @@ label {
 
 .agreement-question {
 	display: flex;
-	gap: 50px;
-	justify-content: center;
+	justify-content: space-around;
 }
 .agreement-question>div {
 	display: flex;
@@ -155,4 +154,34 @@ input[type=text] {
 input[type=text]:active,
 input[type=text]:focus {
 	border-color: rgb(0, 0, 0);
+}
+
+@media (max-width: 600px) {
+	.matrix {
+		margin: 0 auto;
+	}
+
+	.matrix th,
+	.matrix td {
+		min-width: 50px;
+	}
+
+	.agreement-question {
+		gap: 3px;
+	}
+
+	.agreement-question>div>.option {
+		padding: 2.5px 5px;
+	}
+}
+
+@media (max-width: 425px) {
+	.matrix th,
+	.matrix td {
+		min-width: 30px;
+	}
+
+	.agreement-question>div>.option {
+		font-size: 0.65rem;
+	}
 }
