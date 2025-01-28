@@ -48,6 +48,7 @@ def survey_thanks(id):
 
 @main_routes.route("/survey/<id>/<step>", methods=['GET'])
 def survey_step_get(id, step):
+    prolific_id = request.args.get("PROLIFIC_PID")
     survey = get_survey_or_404(id)
 
     if step != "1" and step != "2":
@@ -56,7 +57,12 @@ def survey_step_get(id, step):
     if step == "1":
         # Clear/reset the user's session
         session.clear()
-        session["user_id"] = str(uuid.uuid4())
+        if prolific_id is not None:
+            session["user_id"] = prolific_id
+            session["prolific"] = True
+        else:
+            session["user_id"] = str(uuid.uuid4())
+            session["prolific"] = False
         session["questions_first"] = bool(random.choice([True, False]))
         session["step_1_completed"] = False
         session["survey_db_collection"] = survey.identifier

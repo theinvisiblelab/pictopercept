@@ -4,7 +4,7 @@ import logging
 from flask import Request, Response, make_response, render_template, session
 
 from pictopercept.db import db_save_question_survey
-from pictopercept.lib.common_types import BaseSurvey
+from pictopercept.lib.common_types import MAX_USER_ID_LEN, BaseSurvey
 
 def get_handler(survey: BaseSurvey, current_step: str):
     return render_template("regular_questions.html", ** {
@@ -35,13 +35,9 @@ def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
 
         if len(errors) == 0:
             try:
-                final_data =  json.dumps({
-                    "userId": session["user_id"],
-                    "answers": clean_answers
-                })
-                logging.getLogger(__name__).warning(f"Size in bytes: {len(final_data)}")
                 db_save_question_survey({
-                    "userId": session["user_id"],
+                    "userId": session["user_id"][:MAX_USER_ID_LEN],
+                    "isProlific": session["prolific"],
                     "answers": clean_answers
                 }, session["survey_db_collection"])
             except Exception as e:

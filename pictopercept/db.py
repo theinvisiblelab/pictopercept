@@ -85,7 +85,9 @@ def db_query_all(table_name, chunk_size: int):
                 result.pop("_id")
                 for image_answer in result["image_answers"]:
                     image_answer.pop("_id")
-                    image_answer.pop("userId") # Not needed, as the parent object itself already has it
+                    # Drop extra info, as the parent object itself already has it
+                    image_answer.pop("userId", None) 
+                    image_answer.pop("isProlific", None)
 
                 out += json.dumps(result)
                 yield out

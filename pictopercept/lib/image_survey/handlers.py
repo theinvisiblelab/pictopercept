@@ -7,7 +7,7 @@ from flask import Request, Response, make_response, render_template, session
 from pydantic import BaseModel, Field
 
 from pictopercept.db import db_save_image_survey
-from pictopercept.lib.common_types import BaseSurvey
+from pictopercept.lib.common_types import MAX_USER_ID_LEN, BaseSurvey
 
 def get_handler(survey: BaseSurvey, current_step: str):
     generated_survey = survey.generate_image_survey()
@@ -44,7 +44,8 @@ def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
 
         # This is safe to use, as is injected and encrypted into the session cookie.
         generated_survey = session["generated_survey"]
-        user_id : str = session["user_id"]
+        user_id = session["user_id"][:MAX_USER_ID_LEN],
+        is_prolific : bool = session["prolific"]
 
         clean_answers = []
         for pair_question, answer in zip(generated_survey["pair_questions"], answers):
@@ -62,6 +63,7 @@ def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
             if valid_images and valid_choice:
                 clean_answers.append({
                     "userId": user_id,
+                    "isProlific": is_prolific,
                     "images": [
                         {
                             "image": image_0.image,

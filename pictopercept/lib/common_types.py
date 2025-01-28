@@ -5,6 +5,8 @@ from typing import List, Optional
 from pictopercept.lib.regular_question_survey.types import RegularQuestion
 from pictopercept.lib.image_survey.types import AnswerTimer, PairQuestion
 
+MAX_USER_ID_LEN = 36 # ProlificID's len is 24, and uuid4's 36 
+
 @dataclass
 class GeneratedImageSurvey:
     pair_questions: List[PairQuestion]
