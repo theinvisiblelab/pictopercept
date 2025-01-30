@@ -3,10 +3,10 @@ import os
 import uuid
 import logging
 
-from flask import Blueprint, abort, make_response, render_template, request, send_file, session 
+from flask import Blueprint, abort, make_response, redirect, render_template, request, send_file, session 
 from numpy import random
 
-from pictopercept.db import db_query_all
+from pictopercept.db import db_query_all, db_query_image_answers
 from pictopercept.lib.common_types import BaseSurvey
 from pictopercept.lib.survey_manager import get_survey, get_surveys
 import pictopercept.lib.image_survey.handlers as image_handlers
@@ -63,11 +63,18 @@ def survey_step_get(id, step):
         else:
             session["user_id"] = str(uuid.uuid4())
             session["prolific"] = False
-        session["questions_first"] = bool(random.choice([True, False]))
+        if survey.metadata.regular_questions_enabled:
+            session["questions_first"] = bool(random.choice([True, False]))
+        else:
+            session["questions_first"] = False
         session["step_1_completed"] = False
         session["survey_db_collection"] = survey.metadata.identifier
 
     if step == "2":
+        # If regular questions are disabled for the survey, 
+        if not survey.metadata.regular_questions_enabled:
+            return redirect(f"/survey/{id}/thanks")
+
         # Ensure valid session
         if session.get("user_id") is None:
             logging.warning("[WARNING] User visited step two without a session.")
@@ -94,6 +101,9 @@ def survey_step_post(id, step):
     if session.get("user_id") is None:
         logging.getLogger(__name__).error("[ERROR] User tried posting data without a session.")
         return make_response("Cannot post data without an active survey session.", 400)
+
+    if step == "2" and not survey.metadata.regular_questions_enabled:
+        abort(400)
 
     # Ensure step 1 is completed
     if step == "2" and not session["step_1_completed"]:
@@ -145,11 +155,24 @@ def fetch_data():
     if arguments.get("chunk_size") is not None:
         chunk_size = int(arguments["chunk_size"])
 
-    return db_query_all(survey_name, chunk_size), {
-        "Content-Type": "application/json",
-        "Content-Disposition": "attachment",
-        "filename": "data.json"
-    }
+    fetch_mode = "all"
+    if arguments.get("mode") is not None:
+        fetch_mode = arguments["mode"]
+
+    if fetch_mode == "all":
+        return db_query_all(survey_name, chunk_size), {
+            "Content-Type": "application/json",
+            "Content-Disposition": "attachment",
+            "filename": "data.json"
+        }
+    elif fetch_mode == "images_only":
+        return db_query_image_answers(survey_name, chunk_size), {
+            "Content-Type": "application/json",
+            "Content-Disposition": "attachment",
+            "filename": "data.json"
+        }
+    else:
+        abort(400)
 
 @main_routes.route("/img/<answer_index>/<side>", methods=['GET'])
 def get_cfd_image(answer_index, side):

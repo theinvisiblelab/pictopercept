@@ -44,7 +44,7 @@ def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
 
         # This is safe to use, as is injected and encrypted into the session cookie.
         generated_survey = session["generated_survey"]
-        user_id = session["user_id"][:MAX_USER_ID_LEN],
+        user_id = session["user_id"][:MAX_USER_ID_LEN]
         is_prolific : bool = session["prolific"]
 
         clean_answers = []

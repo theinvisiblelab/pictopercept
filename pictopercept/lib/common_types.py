@@ -31,6 +31,7 @@ class SurveyMetadata():
     duration_seconds: Optional[int]
     image_dataset_path: str
     regular_questions: List[RegularQuestion]
+    regular_questions_enabled: bool
 
 class BaseSurvey(metaclass=ABCMeta):
     @property

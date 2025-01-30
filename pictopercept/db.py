@@ -96,3 +96,43 @@ def db_query_all(table_name, chunk_size: int):
     else:
         logging.getLogger(__name__).error("[ERROR] DB Client is None.")
         return []
+
+def db_query_image_answers(table_name, chunk_size: int):
+    # Recommended chunk_size between 50-300
+    global client
+
+    skip = 0
+    first_result = True
+
+    if client is not None:
+        if get_survey(table_name) is None:
+            abort(404)
+
+        yield '{"data": ['
+
+        while True:
+            results = client["main_db"][f"{table_name}_images"].aggregate([
+                {"$skip": skip},
+                {"$limit": chunk_size}
+            ])
+
+            chunk_results = list(results)
+            if len(chunk_results) == 0:
+                break
+
+            for result in chunk_results:
+                out = ", "
+                if first_result:
+                    out = ""
+                    first_result = False
+
+                # Remove MongoDB id object
+                result.pop("_id")
+
+                out += json.dumps(result)
+                yield out
+            skip += chunk_size
+        yield "]\n}"
+    else:
+        logging.getLogger(__name__).error("[ERROR] DB Client is None.")
+        return []

@@ -15,13 +15,14 @@ class OccupationsSurvey(BaseSurvey):
     def metadata(self) -> SurveyMetadata:
         return SurveyMetadata(
             identifier="occupations",
-            image_dataset_path = f"{DATASETS_PATH}/chicago_face_dataset/Images/CFD",
+            image_dataset_path = f"{DATASETS_PATH}/chicago_face_dataset/",
 
             big_description = "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
             accent_color = "#ff4b4b",
 
             answer_timer = AnswerTimer(AnswerTimerMode.random, 6),
-            duration_seconds = 5,
+            duration_seconds = 180,
+            regular_questions_enabled = False,
             regular_questions = [
                 MultipleChoice("Which of the following best describes your primary occupational status?", True, [
                     "Employed (full-time)",
@@ -64,14 +65,10 @@ class OccupationsSurvey(BaseSurvey):
     def __init__(self):
         neutral_images = []
         
-        for folder in os.listdir(self.metadata.image_dataset_path):
-            folder_path = os.path.join(self.metadata.image_dataset_path, folder)
-            
-            if os.path.isdir(folder_path):
-                for file in os.listdir(folder_path):
-                    if file.endswith("-N.jpg"):
-                        neutral_images.append(file)
-                        break  # Assuming only one neutral face per folder
+        logging.getLogger(__name__).warning(f"Dataset path: {self.metadata.image_dataset_path}")
+        for file in os.listdir(self.metadata.image_dataset_path):
+            if file.endswith(".jpg"):
+                neutral_images.append(file)
         
         # should be 597 images
         logging.getLogger(__name__).warning(f"[INFO] Found {len(neutral_images)} neutral images for \"occupations\" survey.")
@@ -80,9 +77,8 @@ class OccupationsSurvey(BaseSurvey):
         for img in neutral_images:
             parts = img.split("-") # Example: CFD-BM-201-077-N.jpg → ['CFD', 'BM', '201', '077', 'N.jpg']
             ethnicity_gender = parts[1] # Extract ethnicity & gender (e.g., "BM", "AF", etc.)
-            id = parts[2]
             if ethnicity_gender in self.cfd_image_groups:
-                self.cfd_image_groups[ethnicity_gender].append(f"{ethnicity_gender}-{id}/{img}")
+                self.cfd_image_groups[ethnicity_gender].append(img)
 
         # Generate all 64 possible pairs
         self.cfd_category_pairs =[(cat1, cat2) for cat1 in self.cfd_image_groups for cat2 in self.cfd_image_groups] 
