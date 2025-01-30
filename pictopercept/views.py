@@ -35,9 +35,9 @@ def survey_index(id):
     survey = get_survey_or_404(id)
 
     return render_template("index.html", ** {
-        "survey_description": survey.big_description,
+        "survey_description": survey.metadata.big_description,
         "survey_id": id,
-        "accent_color": f"--accent_color:{survey.accent_color}" # Css rule to set the custom survey accent
+        "accent_color": f"--accent_color:{survey.metadata.accent_color}" # Css rule to set the custom survey accent
     })
 
 @main_routes.route("/survey/<id>/thanks", methods=['GET'])
@@ -65,7 +65,7 @@ def survey_step_get(id, step):
             session["prolific"] = False
         session["questions_first"] = bool(random.choice([True, False]))
         session["step_1_completed"] = False
-        session["survey_db_collection"] = survey.identifier
+        session["survey_db_collection"] = survey.metadata.identifier
 
     if step == "2":
         # Ensure valid session

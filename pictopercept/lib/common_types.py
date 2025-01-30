@@ -22,37 +22,20 @@ class GeneratedImageSurvey:
 class GeneratedRegularSurvey:
     questions: List[RegularQuestion]
 
+@dataclass
+class SurveyMetadata():
+    identifier: str
+    big_description: str
+    accent_color: str
+    answer_timer: AnswerTimer
+    duration_seconds: Optional[int]
+    image_dataset_path: str
+    regular_questions: List[RegularQuestion]
 
 class BaseSurvey(metaclass=ABCMeta):
-    # Mandatory properties of each Survey
     @property
     @abstractmethod
-    def identifier(self) -> str: pass
-
-    @property
-    @abstractmethod
-    def big_description(self) -> str: pass
-
-    @property
-    @abstractmethod
-    def accent_color(self) -> str: pass
-
-    @property
-    @abstractmethod
-    def answer_timer(self) -> AnswerTimer: pass
-
-    @property
-    @abstractmethod
-    def duration_seconds(self) -> Optional[int]: pass
-
-    @property
-    @abstractmethod
-    def image_dataset_path(self) -> str: pass
-
-    @property
-    @abstractmethod
-    def regular_questions(self) -> List[RegularQuestion]: pass
-
+    def metadata(self) -> SurveyMetadata: pass
 
     # Mandatory methods of each Survey
     @abstractmethod

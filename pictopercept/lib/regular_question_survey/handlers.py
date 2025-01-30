@@ -10,20 +10,20 @@ def get_handler(survey: BaseSurvey, current_step: str):
     return render_template("regular_questions.html", ** {
         "accent_color": f"--accent_color:#ff4b4b",
         "questions": survey.generate_regular_survey().questions,
-        "survey_post_url": f"/survey/{survey.identifier}/{current_step}",
+        "survey_post_url": f"/survey/{survey.metadata.identifier}/{current_step}",
     })
 
 def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
     data = request.get_json()
 
-    if len(survey.regular_questions) is not len(data):
+    if len(survey.metadata.regular_questions) is not len(data):
         return make_response("Incorrect answer format.", 400)
 
     clean_answers = []
     errors = {}
 
     try:
-        for i, [question, answer] in enumerate(zip(survey.regular_questions, data)):
+        for i, [question, answer] in enumerate(zip(survey.metadata.regular_questions, data)):
             result = question.validate(answer)
 
             if isinstance(result, str):

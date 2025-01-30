@@ -20,7 +20,7 @@ def get_handler(survey: BaseSurvey, current_step: str):
     return render_template("survey.html", **{
         "generated_survey": generated_survey, # Used by our Python template
         "generated_survey_json": json.dumps(generated_survey_json), # Used by JavaScript.
-        "survey_post_url": f"/survey/{survey.identifier}/{current_step}", # Used by JavaScript
+        "survey_post_url": f"/survey/{survey.metadata.identifier}/{current_step}", # Used by JavaScript
     })
 
 def post_handler(request: Request, survey: BaseSurvey) -> Response | None:

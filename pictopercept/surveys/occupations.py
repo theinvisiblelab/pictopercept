@@ -1,77 +1,62 @@
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, final
+from typing import Dict, List, Tuple, final
 
 import numpy as np
-import pandas as pd
 from numpy import random
 
-from pictopercept.lib.common_types import BaseSurvey, GeneratedImageSurvey, GeneratedRegularSurvey, DATASETS_PATH
+from pictopercept.lib.common_types import BaseSurvey, GeneratedImageSurvey, GeneratedRegularSurvey, DATASETS_PATH, SurveyMetadata
 from pictopercept.lib.image_survey.types import AnswerTimer, AnswerTimerMode, PairQuestion
-from pictopercept.lib.regular_question_survey.types import RegularQuestion, AgreementScale, Matrix, MultipleChoice, OpenShort
+from pictopercept.lib.regular_question_survey.types import AgreementScale, Matrix, MultipleChoice, OpenShort
 
 @final
 class OccupationsSurvey(BaseSurvey):
     @property
-    def identifier(self) -> str:
-        return "occupations"
+    def metadata(self) -> SurveyMetadata:
+        return SurveyMetadata(
+            identifier="occupations",
+            image_dataset_path = f"{DATASETS_PATH}/chicago_face_dataset/Images/CFD",
 
-    @property
-    def big_description(self) -> str:
-        return "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>"
+            big_description = "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
+            accent_color = "#ff4b4b",
 
-    @property
-    def accent_color(self) -> str:
-        return "#ff4b4b"
-
-    @property
-    def answer_timer(self) -> AnswerTimer:
-        return AnswerTimer(AnswerTimerMode.random, 6)
-
-    @property
-    def duration_seconds(self) -> Optional[int]:
-        return 180
-
-    @property
-    def image_dataset_path(self) -> str:
-        return f"{DATASETS_PATH}/chicago_face_dataset/Images/CFD"
-
-    @property
-    def regular_questions(self) -> List[RegularQuestion]:
-        return [
-            MultipleChoice("Which of the following best describes your primary occupational status?", True, [
-                "Employed (full-time)",
-                "Employed (part-time)",
-                "Self-employed",
-                "Unemployed",
-                "Retired",
-                "Student"
-            ]),
-            Matrix("How familiar are you with each of the following occupations based on personal experience or people you know? (1 = Not at all familiar; 5 = Extremely familiar)", [
-                "Teacher",
-                "Doctor",
-                "Plumber"
-            ]),
-            MultipleChoice("How often do you consume TV shows, movies, social media, or news that depict various occupations (e.g., in dramas, documentaries, social media content)?", False, [
-                "Never",
-                "Rarely (less than once a week)",
-                "Sometimes (1-3 times a week)",
-                "Often (4-6 times a week)",
-                "Very often (daily)"
-            ]),
-            AgreementScale("Media portrayals generally provide realistic depictions of different occupations."),
-            AgreementScale("I notice stereotypes about certain jobs when I watch TV shows or movies."),
-            AgreementScale("It is easy to guess someone’s occupation just by looking at them."),
-            AgreementScale("I believe stereotypes about occupations exist for a reason (i.e., there is some truth to them)."),
-            AgreementScale("Even if I notice stereotypes, I try not to let them influence my judgment."),
-            AgreementScale("When answering surveys, I try to provide responses that I believe are more socially acceptable, even if they don’t perfectly reflect my true feelings."),
-            MultipleChoice("In my workplace or daily social environment, I frequently interact with people from diverse backgrounds (e.g., different races, genders, or cultures).", False, [
-                "Different races",
-                "Different genders",
-                "Different cultures"
-            ]),
-            OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?", 8, 50)
-        ]
+            answer_timer = AnswerTimer(AnswerTimerMode.random, 6),
+            duration_seconds = 5,
+            regular_questions = [
+                MultipleChoice("Which of the following best describes your primary occupational status?", True, [
+                    "Employed (full-time)",
+                    "Employed (part-time)",
+                    "Self-employed",
+                    "Unemployed",
+                    "Retired",
+                    "Student"
+                ]),
+                Matrix("How familiar are you with each of the following occupations based on personal experience or people you know? (1 = Not at all familiar; 5 = Extremely familiar)", [
+                    "Teacher",
+                    "Doctor",
+                    "Plumber"
+                ]),
+                MultipleChoice("How often do you consume TV shows, movies, social media, or news that depict various occupations (e.g., in dramas, documentaries, social media content)?", False, [
+                    "Never",
+                    "Rarely (less than once a week)",
+                    "Sometimes (1-3 times a week)",
+                    "Often (4-6 times a week)",
+                    "Very often (daily)"
+                ]),
+                AgreementScale("Media portrayals generally provide realistic depictions of different occupations."),
+                AgreementScale("I notice stereotypes about certain jobs when I watch TV shows or movies."),
+                AgreementScale("It is easy to guess someone’s occupation just by looking at them."),
+                AgreementScale("I believe stereotypes about occupations exist for a reason (i.e., there is some truth to them)."),
+                AgreementScale("Even if I notice stereotypes, I try not to let them influence my judgment."),
+                AgreementScale("When answering surveys, I try to provide responses that I believe are more socially acceptable, even if they don’t perfectly reflect my true feelings."),
+                MultipleChoice("In my workplace or daily social environment, I frequently interact with people from diverse backgrounds (e.g., different races, genders, or cultures).", False, [
+                    "Different races",
+                    "Different genders",
+                    "Different cultures"
+                ]),
+                OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?", 8, 50)
+            ]
+        )
 
     cfd_image_groups: Dict[str, List[str]]
     cfd_category_pairs: List[Tuple[str, str]]
@@ -79,8 +64,8 @@ class OccupationsSurvey(BaseSurvey):
     def __init__(self):
         neutral_images = []
         
-        for folder in os.listdir(self.image_dataset_path):
-            folder_path = os.path.join(self.image_dataset_path, folder)
+        for folder in os.listdir(self.metadata.image_dataset_path):
+            folder_path = os.path.join(self.metadata.image_dataset_path, folder)
             
             if os.path.isdir(folder_path):
                 for file in os.listdir(folder_path):
@@ -146,11 +131,11 @@ class OccupationsSurvey(BaseSurvey):
         np.random.shuffle(final_pairs)
 
         time_bar_duration = None
-        if self.answer_timer.should_use():
-            time_bar_duration = self.answer_timer.duration
+        if self.metadata.answer_timer.should_use():
+            time_bar_duration = self.metadata.answer_timer.duration
 
-        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.image_dataset_path, self.accent_color, "occupations")
+        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.metadata.duration_seconds, self.metadata.image_dataset_path, self.metadata.accent_color, "occupations")
     
     def generate_regular_survey(self) -> GeneratedRegularSurvey:
-        regular_questions = self.regular_questions
+        regular_questions = self.metadata.regular_questions
         return GeneratedRegularSurvey(regular_questions)
