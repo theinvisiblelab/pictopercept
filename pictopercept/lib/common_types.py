@@ -1,19 +1,22 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+import os
 from typing import List, Optional
 
 from pictopercept.lib.regular_question_survey.types import RegularQuestion
 from pictopercept.lib.image_survey.types import AnswerTimer, PairQuestion
 
 MAX_USER_ID_LEN = 36 # ProlificID's len is 24, and uuid4's 36 
+DATASETS_PATH = os.environ.get("DATASETS_PATH", "/data/datasets")
 
 @dataclass
 class GeneratedImageSurvey:
     pair_questions: List[PairQuestion]
     time_bar_duration: Optional[int]
     duration_seconds: Optional[int]
-    dataset_folder_name: str
+    image_dataset_path: str
     accent_color: str
+    survey_name: str
 
 @dataclass
 class GeneratedRegularSurvey:
@@ -44,7 +47,7 @@ class BaseSurvey(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def dataset_folder_name(self) -> str: pass
+    def image_dataset_path(self) -> str: pass
 
     @property
     @abstractmethod

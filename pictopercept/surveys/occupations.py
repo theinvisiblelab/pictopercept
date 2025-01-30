@@ -1,19 +1,20 @@
 import logging
 import os
-from typing import List, Optional, final
+from typing import Dict, List, Optional, Tuple, final
 
 import numpy as np
 import pandas as pd
+from numpy import random
 
-from pictopercept.lib.common_types import BaseSurvey, GeneratedImageSurvey, GeneratedRegularSurvey
+from pictopercept.lib.common_types import BaseSurvey, GeneratedImageSurvey, GeneratedRegularSurvey, DATASETS_PATH
 from pictopercept.lib.image_survey.types import AnswerTimer, AnswerTimerMode, PairQuestion
 from pictopercept.lib.regular_question_survey.types import RegularQuestion, AgreementScale, Matrix, MultipleChoice, OpenShort
 
 @final
-class JobsSurvey(BaseSurvey):
+class OccupationsSurvey(BaseSurvey):
     @property
     def identifier(self) -> str:
-        return "jobs"
+        return "occupations"
 
     @property
     def big_description(self) -> str:
@@ -32,8 +33,8 @@ class JobsSurvey(BaseSurvey):
         return 180
 
     @property
-    def dataset_folder_name(self) -> str:
-        return "chicago_face_dataset"
+    def image_dataset_path(self) -> str:
+        return f"{DATASETS_PATH}/chicago_face_dataset/Images/CFD"
 
     @property
     def regular_questions(self) -> List[RegularQuestion]:
@@ -72,22 +73,37 @@ class JobsSurvey(BaseSurvey):
             OpenShort("In your own words, how do you think stereotypes (or biases) about certain occupations develop in society?", 8, 50)
         ]
 
-    cfd_dataset: pd.DataFrame
+    cfd_image_groups: Dict[str, List[str]]
+    cfd_category_pairs: List[Tuple[str, str]]
 
     def __init__(self):
-        self.load_dataset("cfd.csv")
+        neutral_images = []
+        
+        for folder in os.listdir(self.image_dataset_path):
+            folder_path = os.path.join(self.image_dataset_path, folder)
+            
+            if os.path.isdir(folder_path):
+                for file in os.listdir(folder_path):
+                    if file.endswith("-N.jpg"):
+                        neutral_images.append(file)
+                        break  # Assuming only one neutral face per folder
+        
+        # should be 597 images
+        logging.getLogger(__name__).warning(f"[INFO] Found {len(neutral_images)} neutral images for \"occupations\" survey.")
 
-    def load_dataset(self, dataset: str):
-        df = pd.read_csv("pictopercept/datasets/"+dataset)
+        self.cfd_image_groups = {f"{ethnicity}{gender}":[] for ethnicity in "ABWL" for gender in "MF"}
+        for img in neutral_images:
+            parts = img.split("-") # Example: CFD-BM-201-077-N.jpg → ['CFD', 'BM', '201', '077', 'N.jpg']
+            ethnicity_gender = parts[1] # Extract ethnicity & gender (e.g., "BM", "AF", etc.)
+            id = parts[2]
+            if ethnicity_gender in self.cfd_image_groups:
+                self.cfd_image_groups[ethnicity_gender].append(f"{ethnicity_gender}-{id}/{img}")
 
-        if not isinstance(df, pd.DataFrame):
-            logging.getLogger(__name__).critical("[ERROR] There is no DataFrame dataset loaded. Is it instance of DataFrame?")
-            exit(1)
-
-        self.cfd_dataset = df
+        # Generate all 64 possible pairs
+        self.cfd_category_pairs =[(cat1, cat2) for cat1 in self.cfd_image_groups for cat2 in self.cfd_image_groups] 
 
     def generate_question_text(self) -> List[str]:
-        jobs = [
+        occupations = [
             "a Chief Executive Officer (CEO)",
             "a Computer Programmer",
             "a Doctor",
@@ -98,22 +114,28 @@ class JobsSurvey(BaseSurvey):
             "a Construction Worker"
         ]
 
-        generated_jobs = np.matrix([[job for _ in range(8)] for job in jobs])
-        return generated_jobs.flatten().tolist()[0]
+        generated_occupations = np.matrix([[occupation for _ in range(8)] for occupation in occupations])
+        return generated_occupations.flatten().tolist()[0]
 
 
     def generate_image_survey(self) -> GeneratedImageSurvey:
-        desired_pair_count = 64
-        survey_images = self.cfd_dataset["file"].sample(desired_pair_count * 2).tolist()
-        generated_jobs = self.generate_question_text()
+        # Randomly select an image from each category for the pairs
+        image_pairs = []
+        for cat1, cat2 in self.cfd_category_pairs:
+            if self.cfd_image_groups[cat1] and self.cfd_image_groups[cat2]:  # Ensure there are images in both categories
+                img1 = random.choice(self.cfd_image_groups[cat1])
+                img2 = random.choice(self.cfd_image_groups[cat2])
+                image_pairs.append((img1, img2))
+        
+        random.shuffle(image_pairs) # shuffle so images shown are not too predictable in order
 
-        image_count = len(survey_images)
+        generated_occupations = self.generate_question_text()
 
         # Create the pairs
         final_pairs = []
-        for i, job in zip(range(0, image_count, 2), generated_jobs):
+        for image_pair, job in zip(image_pairs, generated_occupations):
             question_text = f"Who of these is {job}?"
-            final_pairs.append(PairQuestion((survey_images[i], survey_images[i+1]), question_text))
+            final_pairs.append(PairQuestion(image_pair, question_text))
 
         # Select 6 random pairs as attention checks, flip them and add them
         repeated_pairs = np.random.choice(final_pairs, 6, replace=False)
@@ -127,7 +149,7 @@ class JobsSurvey(BaseSurvey):
         if self.answer_timer.should_use():
             time_bar_duration = self.answer_timer.duration
 
-        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.dataset_folder_name, self.accent_color)
+        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.duration_seconds, self.image_dataset_path, self.accent_color, "occupations")
     
     def generate_regular_survey(self) -> GeneratedRegularSurvey:
         regular_questions = self.regular_questions

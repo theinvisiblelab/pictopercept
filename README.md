@@ -57,5 +57,3 @@ One easy way would just be using the Docker Compose service's MongoDB locally. T
 
 #### Database and Dataset folders
 You will need to create two folders wherever you want and point both envs to those folders (`DATABASE_PATH` and `DATASETS_PATH`).
-
-However, the datasets folder must contain the right folders/images depending on how the jobs are configured. This will be explained in the future/via a private dataset repository.

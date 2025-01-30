@@ -15,7 +15,7 @@ def get_handler(survey: BaseSurvey, current_step: str):
     session["generated_survey"] = generated_survey;
 
     generated_survey_json = asdict(generated_survey)
-    generated_survey_json.pop("dataset_folder_name")
+    generated_survey_json.pop("image_dataset_path")
     
     return render_template("survey.html", **{
         "generated_survey": generated_survey, # Used by our Python template

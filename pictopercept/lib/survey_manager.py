@@ -2,7 +2,7 @@ from typing import Dict
 import logging
 
 from pictopercept.lib.common_types import BaseSurvey
-from pictopercept.surveys.jobs import JobsSurvey
+from pictopercept.surveys.occupations import OccupationsSurvey
 
 loaded_surveys : Dict[str, BaseSurvey] = {}
 
@@ -11,7 +11,7 @@ loaded_surveys : Dict[str, BaseSurvey] = {}
 def load_surveys():
     global loaded_surveys
     loaded_surveys = {
-        "jobs": JobsSurvey(),
+        "occupations": OccupationsSurvey(),
     }
 
     logging.getLogger(__name__).warning("[INFO] Surveys are OK.")

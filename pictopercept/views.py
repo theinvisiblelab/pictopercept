@@ -151,7 +151,6 @@ def fetch_data():
         "filename": "data.json"
     }
 
-DATASETS_PATH = os.environ.get("DATASETS_PATH", "/data/datasets")
 @main_routes.route("/img/<answer_index>/<side>", methods=['GET'])
 def get_cfd_image(answer_index, side):
     if session.get("generated_survey") is None:
@@ -165,7 +164,14 @@ def get_cfd_image(answer_index, side):
     if index < 0 or index >= len(session["generated_survey"]["pair_questions"]):
         abort(404);
 
-    image_path = os.path.abspath(f'{DATASETS_PATH}/{session["generated_survey"]["dataset_folder_name"]}/{session["generated_survey"]["pair_questions"][index]["images"][side]}')
+    image_name = session["generated_survey"]["pair_questions"][index]["images"][side]
+    image_dataset_path = session["generated_survey"]["image_dataset_path"]
+    image_path = f"{image_dataset_path}/{image_name}"
+
+    # Survey specific image path logic could be implemented here later if needed
+    # if session["generated_survey"]["survey_name"] == "occupations":
+    #   image_path = "..."
+
     if not os.path.exists(image_path):
         abort(404)
 
