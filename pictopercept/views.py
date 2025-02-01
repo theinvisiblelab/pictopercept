@@ -1,4 +1,3 @@
-import json
 import os
 import uuid
 import logging
@@ -46,85 +45,70 @@ def survey_thanks(id):
     session.clear()
     return make_response("<h1>Thanks</h1><p>Thanks for completing the survey. Your answers have been saved.</p>", 200)
 
-@main_routes.route("/survey/<id>/<step>", methods=['GET'])
-def survey_step_get(id, step):
-    prolific_id = request.args.get("PROLIFIC_PID")
+@main_routes.route("/survey/<id>/take", methods=['GET'])
+def survey_step_get(id):
     survey = get_survey_or_404(id)
 
-    if step != "1" and step != "2":
-        abort(404)
+    step = int(session.get("step", "1"))
 
-    if step == "1":
-        # Clear/reset the user's session
-        session.clear()
-        if prolific_id is not None:
-            session["user_id"] = prolific_id
-            session["prolific"] = True
-        else:
-            session["user_id"] = str(uuid.uuid4())
-            session["prolific"] = False
-        if survey.metadata.regular_questions_enabled:
-            session["questions_first"] = bool(random.choice([True, False]))
-        else:
-            session["questions_first"] = False
-        session["step_1_completed"] = False
-        session["survey_db_collection"] = survey.metadata.identifier
+    match step:
+        case 1:
+            # Clear/reset the user's session
+            session.clear()
+            session["step"] = 1
+            session["survey_db_collection"] = survey.metadata.identifier
 
-    if step == "2":
-        # If regular questions are disabled for the survey, 
-        if not survey.metadata.regular_questions_enabled:
+            prolific_id = request.args.get("PROLIFIC_PID")
+
+            if prolific_id is not None:
+                session["user_id"] = prolific_id
+                session["prolific"] = True
+            else:
+                session["user_id"] = str(uuid.uuid4())
+                session["prolific"] = False
+
+            if survey.metadata.regular_questions_enabled:
+                session["questions_first"] = bool(random.choice([True, False]))
+            else:
+                session["questions_first"] = False
+        case 2:
+            # End survey if regular questions are disabled
+            if not survey.metadata.regular_questions_enabled:
+                return redirect(f"/survey/{id}/thanks")
+        case 3:
             return redirect(f"/survey/{id}/thanks")
 
-        # Ensure valid session
-        if session.get("user_id") is None:
-            logging.warning("[WARNING] User visited step two without a session.")
-            return make_response(f"It seems you don't have an active session. You can start the survey <a href=\"/survey/{id}/1\">here</a>.", 400)
-
-        # Ensure step 1 is completed
-        if not session["step_1_completed"]:
-            logging.warning("[WARNING] User visited step two without completing step 1.")
-            return make_response(f"It seems you haven't completed the survey's step one.. You can start again the survey <a href=\"/survey/{id}/1\">here</a>.", 400)
-
-    if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
-        return regular_question_handlers.get_handler(survey, step)
+    if (session["questions_first"] and step == 1) or (not session["questions_first"] and step == 2):
+        return regular_question_handlers.get_handler(survey)
     else:
-        return image_handlers.get_handler(survey, step)
+        return image_handlers.get_handler(survey)
 
-@main_routes.route("/survey/<id>/<step>", methods=['POST'])
-def survey_step_post(id, step):
+@main_routes.route("/survey/<id>", methods=['POST'])
+def survey_step_post(id):
     survey = get_survey_or_404(id)
 
-    if step != "1" and step != "2":
-        return make_response("", 404)
-    
     # Ensure valid session
     if session.get("user_id") is None:
         logging.getLogger(__name__).error("[ERROR] User tried posting data without a session.")
         return make_response("Cannot post data without an active survey session.", 400)
 
-    if step == "2" and not survey.metadata.regular_questions_enabled:
+    step = session["step"]
+
+    if step == 2 and not survey.metadata.regular_questions_enabled:
         abort(400)
 
-    # Ensure step 1 is completed
-    if step == "2" and not session["step_1_completed"]:
-        logging.getLogger(__name__).error("[ERROR] User tried posting to step two without completing step one.")
-        return make_response("Cannot post data to step two without completing step one.", 400)
-
-    if (session["questions_first"] and step == "1") or (not session["questions_first"] and step == "2"):
+    if (session["questions_first"] and step == 1) or (not session["questions_first"] and step == 2):
         error_response = regular_question_handlers.post_handler(request, survey)
     else:
         error_response = image_handlers.post_handler(request, survey)
 
     if error_response is None:
-        if step == "1":
-            session["step_1_completed"] = True
-            return make_response(json.dumps({
-                "next_step": f"/survey/{id}/2"
-            }), 200)
-        else:
-            return make_response(json.dumps({
-                "next_step": f"/survey/{id}/thanks"
-            }), 200)
+        if step == 1:
+            session["step"] = 2
+        elif step == 2:
+            session["step"] = 3 # "Thanks" page
+
+        return {} # 200 OK
     else:
         return error_response
 

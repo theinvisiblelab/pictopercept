@@ -16,7 +16,7 @@ class GeneratedImageSurvey:
     duration_seconds: Optional[int]
     image_dataset_path: str
     accent_color: str
-    survey_name: str
+    identifier: str
 
 @dataclass
 class GeneratedRegularSurvey:

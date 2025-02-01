@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from pictopercept.db import db_save_image_survey
 from pictopercept.lib.common_types import MAX_USER_ID_LEN, BaseSurvey
 
-def get_handler(survey: BaseSurvey, current_step: str):
+def get_handler(survey: BaseSurvey):
     generated_survey = survey.generate_image_survey()
     
     session["generated_survey"] = generated_survey;
@@ -20,7 +20,6 @@ def get_handler(survey: BaseSurvey, current_step: str):
     return render_template("survey.html", **{
         "generated_survey": generated_survey, # Used by our Python template
         "generated_survey_json": json.dumps(generated_survey_json), # Used by JavaScript.
-        "survey_post_url": f"/survey/{survey.metadata.identifier}/{current_step}", # Used by JavaScript
     })
 
 def post_handler(request: Request, survey: BaseSurvey) -> Response | None:

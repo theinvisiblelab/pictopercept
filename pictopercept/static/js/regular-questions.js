@@ -1,8 +1,8 @@
 /**
- * The target URL to post the survey against.
+ * The survey identifier.
  * @type {string}
  */
-var surveyPostUrl = window.surveyPostUrl;
+var surveyIdentifier = window.surveyIdentifier;
 
 document.querySelectorAll("input[type='checkbox'], input[type='radio']").forEach((element, _) => {
 	if (element.id.endsWith("-other")) {
@@ -166,7 +166,7 @@ form.addEventListener("submit", (e) => {
 	});
 
 	if (!hasErrors) {
-		fetch(surveyPostUrl, {
+		fetch(`/survey/${surveyIdentifier}`, {
 			method: "POST",
 			body: JSON.stringify(answers),
 			headers: {
@@ -175,8 +175,7 @@ form.addEventListener("submit", (e) => {
 		}).then(async (res) => {
 			const text = await res.text()
 			if (res.ok) {
-				const nextStepUrl = JSON.parse(text)["next_step"]
-				window.location.href = nextStepUrl
+				window.location.reload()
 			} else {
 				const errors = JSON.parse(text);
 				Object.entries(errors).forEach(([key, val]) => {

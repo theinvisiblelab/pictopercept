@@ -20,9 +20,9 @@ class OccupationsSurvey(BaseSurvey):
             big_description = "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
             accent_color = "#ff4b4b",
 
-            answer_timer = AnswerTimer(AnswerTimerMode.random, 6),
+            answer_timer = AnswerTimer(AnswerTimerMode.random, 3),
             duration_seconds = 180,
-            regular_questions_enabled = False,
+            regular_questions_enabled = True,
             regular_questions = [
                 MultipleChoice("Which of the following best describes your primary occupational status?", True, [
                     "Employed (full-time)",
@@ -130,7 +130,7 @@ class OccupationsSurvey(BaseSurvey):
         if self.metadata.answer_timer.should_use():
             time_bar_duration = self.metadata.answer_timer.duration
 
-        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.metadata.duration_seconds, self.metadata.image_dataset_path, self.metadata.accent_color, "occupations")
+        return GeneratedImageSurvey(final_pairs, time_bar_duration, self.metadata.duration_seconds, self.metadata.image_dataset_path, self.metadata.accent_color, self.metadata.identifier)
     
     def generate_regular_survey(self) -> GeneratedRegularSurvey:
         regular_questions = self.metadata.regular_questions

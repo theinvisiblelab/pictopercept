@@ -6,11 +6,11 @@ from flask import Request, Response, make_response, render_template, session
 from pictopercept.db import db_save_question_survey
 from pictopercept.lib.common_types import MAX_USER_ID_LEN, BaseSurvey
 
-def get_handler(survey: BaseSurvey, current_step: str):
+def get_handler(survey: BaseSurvey):
     return render_template("regular_questions.html", ** {
         "accent_color": f"--accent_color:#ff4b4b",
         "questions": survey.generate_regular_survey().questions,
-        "survey_post_url": f"/survey/{survey.metadata.identifier}/{current_step}",
+        "identifier": survey.metadata.identifier,
     })
 
 def post_handler(request: Request, survey: BaseSurvey) -> Response | None:

@@ -7,11 +7,6 @@
 var imageSurvey = window.imageSurvey;
 
 /**
- * @type {string}
- */
-var surveyPostUrl = window.surveyPostUrl;
-
-/**
  * @typedef {Object} PairQuestion
  * @property {[string, string]} images - Both images of the question.
  * @property {string} text - The text of the question itself.
@@ -24,6 +19,7 @@ var surveyPostUrl = window.surveyPostUrl;
  * @property {number | null} duration_seconds - The duration of the survey. If null, then is unlimited.
  * @property {string} image_url_prefix - The URL prefix to put before each image of the survey.
  * @property {string} accent_color - An accent color to represent the survey (e.g. the buttons).
+ * @property {string} identifier - The survey identifier.
  */
 
 
@@ -301,7 +297,7 @@ class Survey {
 		if (csrfTokenElement instanceof HTMLInputElement)
 			csrfToken = csrfTokenElement.value;
 
-		const postRequest = new Request(surveyPostUrl, {
+		const postRequest = new Request(`/survey/${imageSurvey.identifier}`, {
 			method: "POST",
 			body: JSON.stringify(this.#answers),
 
@@ -331,9 +327,8 @@ class Survey {
 		fetch(postRequest).then(async (response) => {
 			const text = await response.text()
 			if (response.status == 200) {
-				const nextStepUrl = JSON.parse(text)["next_step"]
 				window.onbeforeunload = () => { }
-				window.location.href = nextStepUrl
+				window.location.reload()
 			} else {
 				showErrorModal(text);
 			}
