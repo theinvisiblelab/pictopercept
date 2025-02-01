@@ -22,7 +22,7 @@ class OccupationsSurvey(BaseSurvey):
 
             answer_timer = AnswerTimer(AnswerTimerMode.random, 3),
             duration_seconds = 180,
-            regular_questions_enabled = True,
+            regular_questions_enabled = False,
             regular_questions = [
                 MultipleChoice("Which of the following best describes your primary occupational status?", True, [
                     "Employed (full-time)",
