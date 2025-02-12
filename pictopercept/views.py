@@ -43,7 +43,7 @@ def survey_index(id):
 def survey_thanks(id):
     _ = get_survey_or_404(id)
     session.clear()
-    return make_response("<h1>Thanks</h1><p>Thanks for completing the survey. Your answers have been saved.</p>", 200)
+    return render_template("thanks.html", ** {})
 
 @main_routes.route("/survey/<id>/take", methods=['GET'])
 def survey_step_get(id):
