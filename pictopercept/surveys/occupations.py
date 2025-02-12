@@ -20,7 +20,7 @@ class OccupationsSurvey(BaseSurvey):
             big_description = "<p>Welcome to the PictoPercept survey! You'll see pairs of photos and a job title, like \"Who of these is a teacher?\" or \"Who of these is a painter?\" Pick the person you think fits the job more by clicking the button.</p><p>Trust your instincts!</p>",
             accent_color = "#ff4b4b",
 
-            answer_timer = AnswerTimer(AnswerTimerMode.random, 3),
+            answer_timer = AnswerTimer(AnswerTimerMode.always, 3),
             duration_seconds = 180,
             regular_questions_enabled = False,
             regular_questions = [

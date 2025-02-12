@@ -5,8 +5,8 @@ from typing import Tuple
 from numpy import random
 
 class AnswerTimerMode(Enum):
-    on = 0
-    off = 1
+    never = 0
+    always = 1
     random = 2
 
 @dataclass
@@ -16,9 +16,9 @@ class AnswerTimer:
 
     def should_use(self) -> bool:
         match self.mode:
-            case AnswerTimerMode.on:
+            case AnswerTimerMode.always:
                 return True
-            case AnswerTimerMode.off:
+            case AnswerTimerMode.never:
                 return False
             case AnswerTimerMode.random:
                 return random.choice([True, False])
