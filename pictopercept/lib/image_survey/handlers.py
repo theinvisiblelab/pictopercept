@@ -73,7 +73,8 @@ def post_handler(request: Request, survey: BaseSurvey) -> Response | None:
                             "chosen": image_1.chosen,
                         },
                     ],
-                    "secondsTaken": clean_answer.seconds_taken
+                    "secondsTaken": clean_answer.seconds_taken,
+                    "question": pair_question["text"],
                 })
             else:
                 raise Exception("The answers provided do not match with the user-specific ones.")

@@ -22,18 +22,15 @@ main_routes = Blueprint('main', __name__)
 
 @main_routes.route("/", methods=['GET'])
 def index():
-    content = "<h3>This is a temporal index. Select one survey:</h3><ul>"
-    for key in get_surveys().keys():
-        content += f"<li>Survey of {key}, <a href='/survey/{key}'>here</a></li>"
-    content += "</ul>"
-
-    return make_response(content, 200)
+    return render_template("index.html", ** {
+        "surveys": [key for key in get_surveys().keys()]
+    })
 
 @main_routes.route("/survey/<id>", methods=['GET'])
 def survey_index(id):
     survey = get_survey_or_404(id)
 
-    return render_template("index.html", ** {
+    return render_template("survey_index.html", ** {
         "survey_description": survey.metadata.big_description,
         "survey_id": id,
         "accent_color": f"--accent_color:{survey.metadata.accent_color}" # Css rule to set the custom survey accent

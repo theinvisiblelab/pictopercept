@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Thanks - Pictopercept</title>
+		<title>Home - Pictopercept</title>
 		<link rel="stylesheet" href="/static/css/fonts.css">
 		<link rel="stylesheet" href="/static/css/common.css">
 		<link rel="stylesheet" href="/static/css/header.css">
@@ -15,14 +15,13 @@
 		<main class="page-container small">
 			<div class="double">
 				<div>
-					<h1>Available surveys</h1>
-					<ul>
-					{% for key in surveys %}
-						<li>Survey of {{ key }} <a href="/survey/{{ key }}">here</a>.</li>
-					{% endfor %}
-					</ul>
+					<img src="/static/images/changeface.gif" />
+				</div>
+				<div>
+					{{ survey_description|safe }}
 				</div>
 			</div>
+			<a class="button-link" href="/survey/{{ survey_id }}/take">Let us begin!</a>
 		</main>
 	</body>
 </html>
