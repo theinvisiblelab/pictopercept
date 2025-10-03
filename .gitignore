@@ -8,3 +8,9 @@ __pycache__/
 *.RData
 *.Ruserdata
 .vscode/
+maincharacter_data.csv
+.Rproj.user
+pilot_logic
+*.Rmd
+
+*prepilot.ipynb
