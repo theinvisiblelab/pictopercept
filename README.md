@@ -1,6 +1,6 @@
 # 📷 PictoPercept
 
-PictoPercept is a fully open-source survey toolkit designed to study human and machine preferences in an increasingly digitized world. PictoPercept provides visual choice scenarios, where one can make choices by comparing pairs of facial images in short time frames. You can try out sample surveys [here](https://pictopercept.streamlit.app/).
+PictoPercept is a fully open-source survey toolkit designed to study human and machine preferences in an increasingly digitized world. PictoPercept provides visual choice scenarios, where one can make choices by comparing pairs of facial images in short time frames. You can try out sample surveys [here](https://pictopercept.ai/).
 
 **🌱 Supported By**
 
