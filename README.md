@@ -1,6 +1,6 @@
 # pictopercept
 
-This repo outlines the development of Pictopercept - an efficient open source survey tool to assess bias in humans and machines.
+This repo outlines the development of [Pictopercept](https://pictopercept.ai/) - an efficient open source survey tool to assess bias in humans and machines.
 
 The neutral facial images come from the [Chicago Face Database](https://www.chicagofaces.org/).
 
